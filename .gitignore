@@ -1,0 +1,20 @@
+# WebStorm / IDE files
+/.idea/
+/shelf/
+/.idea/workspace.xml
+/httpRequests/
+/dataSources/
+/dataSources.local.xml
+
+# Node.js dependencies
+node_modules/
+dist/
+
+# Environment files
+.env
+
+# Logs
+*.log
+
+# MacOS system files
+.DS_Store
