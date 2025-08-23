@@ -1,7 +1,9 @@
 // src/app/routes.tsx
-import {type RouteObject, Navigate } from "react-router-dom";
+import { type RouteObject, Navigate } from "react-router-dom";
 import Home from "@/features/dashboard/pages/Home";
 import AI from "@/features/ai/AI";
+import NutritionHydration from "@/features/dashboard/pages/NutritionHydration";
+
 
 export const routes: RouteObject[] = [
     {
@@ -14,7 +16,13 @@ export const routes: RouteObject[] = [
     },
     // Catch-all redirect to homepage
     {
+        path: "/nutrition",
+        element: <NutritionHydration />,
+    },
+    {
         path: "*",
         element: <Navigate to="/" replace />,
     },
+
+
 ];
