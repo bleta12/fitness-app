@@ -19,23 +19,46 @@ const NutritionHydration: React.FC = () => {
     const fatPercent = Math.round((fat * 9 / totalMacros) * 100);
 
     // --- Meals State ---
-    const [meals, setMeals] = useState<{ name: string; calories: number }[]>([]);
+    const [meals, setMeals] = useState<
+        { name: string; calories: number; time: string; icon: string; color: string; mealType: string }[]
+    >([]);
     const [mealName, setMealName] = useState("");
     const [mealCalories, setMealCalories] = useState<number | "">("");
+    const [mealTime, setMealTime] = useState("");
+    const [mealType, setMealType] = useState("Breakfast");
 
     // --- Handlers ---
     const addWater = () => setWaterCups(prev => Math.min(prev + 1, totalWaterCups));
-    const removeWater = () => setWaterCups(prev => Math.max(prev - 1, 0));
-
     const addCalories = (amount: number) => setCalories(prev => Math.min(prev + amount, caloriesGoal));
 
     const addMeal = () => {
-        if (mealName && mealCalories) {
-            const newMeal = { name: mealName, calories: Number(mealCalories) };
+        if (mealName && mealCalories && mealTime && mealType) {
+            const icons: Record<string, { icon: string; color: string }> = {
+                Breakfast: { icon: "☕", color: "bg-orange-500" },
+                Lunch: { icon: "🥗", color: "bg-green-500" },
+                Snack: { icon: "🍎", color: "bg-lime-500" },
+                Dinner: { icon: "🍽️", color: "bg-purple-500" },
+            };
+            const { icon, color } = icons[mealType] || {
+                icon: "🍴",
+                color: "bg-gray-400",
+            };
+
+            const newMeal = {
+                name: mealName,
+                calories: Number(mealCalories),
+                time: mealTime,
+                mealType,
+                icon,
+                color,
+            };
+
             setMeals(prev => [...prev, newMeal]);
             setCalories(prev => Math.min(prev + newMeal.calories, caloriesGoal));
             setMealName("");
             setMealCalories("");
+            setMealTime("");
+            setMealType("Breakfast");
         }
     };
 
@@ -64,21 +87,52 @@ const NutritionHydration: React.FC = () => {
                     <p className="text-gray-500 text-sm mt-1">{caloriesGoal - calories} left</p>
                 </div>
 
-                {/* Water */}
-                <div className="bg-gradient-to-r from-blue-400 to-blue-600 text-white rounded-xl shadow p-4 flex flex-col relative">
-                    <p className="font-medium">💧 Water</p>
-                    <p className="text-3xl font-bold">
-                        {waterCups} <span className="text-gray-100 text-xl">/ {totalWaterCups} cups</span>
-                    </p>
-                    <div className="h-2 bg-blue-300 rounded mt-2">
-                        <div className="h-2 bg-white rounded" style={{ width: `${waterPercentage}%` }}></div>
+                {/* Water Tracker */}
+                <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+                    {/* Header */}
+                    <div className="flex justify-between w-full mb-4">
+                        <p className="font-medium text-gray-800">💧 Water Intake</p>
+                        <p className="text-gray-600">
+                            Goal: <span className="text-blue-500 font-semibold">2.0L</span>
+                        </p>
                     </div>
-                    <p className="text-sm mt-1">{totalWaterCups - waterCups} cups to go</p>
-                    {/* Water controls */}
-                    <div className="flex space-x-2 mt-4">
-                        <button onClick={removeWater} className="px-4 py-2 bg-blue-700/50 rounded hover:bg-blue-700 transition">-</button>
-                        <button onClick={addWater} className="px-4 py-2 bg-blue-700 rounded hover:bg-blue-800 transition">+</button>
+
+                    {/* Circular Progress */}
+                    <div className="relative w-28 h-28 flex items-center justify-center mb-4">
+                        <div
+                            className="absolute w-full h-full rounded-full"
+                            style={{
+                                background: `conic-gradient(#3b82f6 ${waterPercentage * 3.6}deg, #e5e7eb 0deg)`,
+                            }}
+                        />
+                        <div className="absolute w-24 h-24 bg-white rounded-full flex flex-col items-center justify-center">
+                            <span className="text-lg font-bold text-gray-800">{waterPercentage}%</span>
+                            <span className="text-xs text-gray-500">completed</span>
+                        </div>
                     </div>
+
+                    {/* Cups */}
+                    <div className="grid grid-cols-4 gap-3 mb-4">
+                        {Array.from({ length: totalWaterCups }, (_, i) => (
+                            <div
+                                key={i}
+                                className={`w-8 h-12 rounded-b-lg flex items-center justify-center text-xs font-medium ${i < waterCups
+                                    ? "bg-gradient-to-t from-blue-500 to-blue-300 text-white shadow"
+                                    : "bg-gray-200 text-gray-400"
+                                    }`}
+                            >
+                                {i + 1}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Button */}
+                    <button
+                        onClick={addWater}
+                        className="w-full py-2 rounded-xl bg-gradient-to-r from-blue-400 to-blue-600 text-white font-semibold hover:from-blue-500 hover:to-blue-700 transition"
+                    >
+                        + Add Cup of Water
+                    </button>
                 </div>
             </div>
 
@@ -135,6 +189,22 @@ const NutritionHydration: React.FC = () => {
                         placeholder="Calories"
                         className="w-28 border rounded px-3 py-2"
                     />
+                    <input
+                        type="time"
+                        value={mealTime}
+                        onChange={e => setMealTime(e.target.value)}
+                        className="w-32 border rounded px-3 py-2"
+                    />
+                    <select
+                        value={mealType}
+                        onChange={e => setMealType(e.target.value)}
+                        className="col-span-2 border rounded px-3 py-2"
+                    >
+                        <option>Breakfast</option>
+                        <option>Lunch</option>
+                        <option>Snack</option>
+                        <option>Dinner</option>
+                    </select>
                     <button
                         onClick={addMeal}
                         className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
@@ -144,15 +214,32 @@ const NutritionHydration: React.FC = () => {
                 </div>
 
                 {/* List of Meals */}
-                <ul className="space-y-2">
+                <div className="space-y-3">
                     {meals.length === 0 && <p className="text-gray-400 text-sm">No meals added yet.</p>}
                     {meals.map((meal, idx) => (
-                        <li key={idx} className="flex justify-between border-b pb-1">
-                            <span>{meal.name}</span>
-                            <span className="text-gray-600">{meal.calories} cal</span>
-                        </li>
+                        <div
+                            key={idx}
+                            className="flex items-center justify-between bg-gray-50 rounded-lg p-3 shadow-sm"
+                        >
+                            {/* Icon */}
+                            <div className={`w-10 h-10 flex items-center justify-center rounded-lg text-white text-xl ${meal.color}`}>
+                                {meal.icon}
+                            </div>
+
+                            {/* Name + Calories */}
+                            <div className="flex-1 ml-4">
+                                <p className="font-medium text-gray-800">{meal.name}</p>
+                                <p className="text-sm text-gray-500">{meal.calories} calories</p>
+                            </div>
+
+                            {/* Time + Edit */}
+                            <div className="text-right">
+                                <p className="text-sm text-gray-500">{meal.time}</p>
+                                <button className="text-green-500 text-sm hover:underline">✏ Edit</button>
+                            </div>
+                        </div>
                     ))}
-                </ul>
+                </div>
             </div>
 
             {/* Floating Button */}
