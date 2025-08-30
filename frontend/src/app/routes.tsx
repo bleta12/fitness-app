@@ -3,6 +3,7 @@ import { type RouteObject, Navigate } from "react-router-dom";
 import Home from "@/features/dashboard/pages/Home";
 import AI from "@/features/ai/AI";
 import NutritionHydration from "@/components/NutritionHydration";
+import Social from "@/features/dashboard/pages/Social";
 
 export const routes: RouteObject[] = [
     {
@@ -16,6 +17,10 @@ export const routes: RouteObject[] = [
     {
         path: "/nutrition",
         element: <NutritionHydration />,
+    },
+    {
+        path: "/social",
+        element: <Social/>,
     },
     // Catch-all redirect to homepage
     {
