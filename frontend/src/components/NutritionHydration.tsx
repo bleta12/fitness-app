@@ -27,12 +27,13 @@ const NutritionHydration: React.FC = () => {
     const [mealCalories, setMealCalories] = useState<number | "">("");
     const [mealTime, setMealTime] = useState("");
     const [mealType, setMealType] = useState("Breakfast");
+    const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
     // --- Handlers ---
     const addWater = () => setWaterCups(prev => Math.min(prev + 1, totalWaterCups));
     const addCalories = (amount: number) => setCalories(prev => Math.min(prev + amount, caloriesGoal));
 
-    const addMeal = () => {
+    const addOrSaveMeal = () => {
         if (mealName && mealCalories && mealTime && mealType) {
             const icons: Record<string, { icon: string; color: string }> = {
                 Breakfast: { icon: "☕", color: "bg-orange-500" },
@@ -54,13 +55,39 @@ const NutritionHydration: React.FC = () => {
                 color,
             };
 
-            setMeals(prev => [...prev, newMeal]);
-            setCalories(prev => Math.min(prev + newMeal.calories, caloriesGoal));
+            if (editingIndex !== null) {
+                // Update existing meal
+                setMeals((prev) => prev.map((m, idx) => (idx === editingIndex ? newMeal : m)));
+                setEditingIndex(null);
+            } else {
+                // Add new meal
+                setMeals((prev) => [...prev, newMeal]);
+                setCalories((prev) => Math.min(prev + newMeal.calories, caloriesGoal));
+            }
+
+            // Reset form
             setMealName("");
             setMealCalories("");
             setMealTime("");
             setMealType("Breakfast");
         }
+    };
+
+    const handleEditMeal = (index: number) => {
+        const meal = meals[index];
+        setMealName(meal.name);
+        setMealCalories(meal.calories);
+        setMealTime(meal.time);
+        setMealType(meal.mealType);
+        setEditingIndex(index); // 👈 enter edit mode
+    };
+
+    const handleCancelEdit = () => {
+        setMealName("");
+        setMealCalories("");
+        setMealTime("");
+        setMealType("Breakfast");
+        setEditingIndex(null);
     };
 
     return (
@@ -70,8 +97,8 @@ const NutritionHydration: React.FC = () => {
 
             <div className="min-h-screen bg-gray-50 flex flex-col items-center p-6">
                 {/* Header */}
-                <div className="w-full max-w-3xl">
-                    <h1 className="text-2xl font-semibold flex items-center gap-2 text-green-600">
+                <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+                    <h1 className="text-2xl font-bold text-center mb-6">
                         🌿 Nutrition & Hydration
                     </h1>
                     <p className="text-lg font-medium mt-4">Today, December 15</p>
@@ -93,10 +120,10 @@ const NutritionHydration: React.FC = () => {
                     </div>
 
                     {/* Water Tracker */}
-                    <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Header */}
-                        <div className="flex justify-between w-full mb-4">
-                            <p className="font-medium text-gray-800">💧 Water Intake</p>
+                        <div className="bg-white p-4 rounded-xl shadow">
+                            <p className="text-lg font-semibold mb-4">💧 Water Intake</p>
                             <p className="text-gray-600">
                                 Goal: <span className="text-blue-500 font-semibold">2.0L</span>
                             </p>
@@ -167,10 +194,27 @@ const NutritionHydration: React.FC = () => {
                 <div className="w-full max-w-3xl mt-6">
                     <p className="font-medium text-gray-700 mb-4">Quick Add</p>
                     <div className="grid grid-cols-2 gap-4">
-                        <button onClick={() => addCalories(500)} className="bg-green-500 hover:bg-green-600 text-white py-4 rounded-xl font-semibold">🍽 Add Meal</button>
-                        <button onClick={addWater} className="bg-blue-500 hover:bg-blue-600 text-white py-4 rounded-xl font-semibold">💧 Add Water</button>
-                        <button onClick={() => addCalories(200)} className="bg-lime-500 hover:bg-lime-600 text-white py-4 rounded-xl font-semibold">🍪 Add Snack</button>
-                        <button className="bg-purple-500 hover:bg-purple-600 text-white py-4 rounded-xl font-semibold">🔍 Search Food</button>
+                        <button
+                            onClick={() => addCalories(500)}
+                            className="bg-green-500 hover:bg-green-600 text-white py-4 rounded-xl font-semibold"
+                        >
+                            🍽 Add Meal
+                        </button>
+                        <button
+                            onClick={addWater}
+                            className="bg-blue-500 hover:bg-blue-600 text-white py-4 rounded-xl font-semibold"
+                        >
+                            💧 Add Water
+                        </button>
+                        <button
+                            onClick={() => addCalories(200)}
+                            className="bg-lime-500 hover:bg-lime-600 text-white py-4 rounded-xl font-semibold"
+                        >
+                            🍪 Add Snack
+                        </button>
+                        <button className="bg-purple-500 hover:bg-purple-600 text-white py-4 rounded-xl font-semibold">
+                            🔍 Search Food
+                        </button>
                     </div>
                 </div>
 
@@ -211,11 +255,19 @@ const NutritionHydration: React.FC = () => {
                             <option>Dinner</option>
                         </select>
                         <button
-                            onClick={addMeal}
+                            onClick={addOrSaveMeal}
                             className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
                         >
-                            Add
+                            {editingIndex !== null ? "Save" : "Add"}
                         </button>
+                        {editingIndex !== null && (
+                            <button
+                                onClick={handleCancelEdit}
+                                className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded"
+                            >
+                                Cancel
+                            </button>
+                        )}
                     </div>
 
                     {/* List of Meals */}
@@ -240,7 +292,8 @@ const NutritionHydration: React.FC = () => {
                                 {/* Time + Edit */}
                                 <div className="text-right">
                                     <p className="text-sm text-gray-500">{meal.time}</p>
-                                    <button className="text-green-500 text-sm hover:underline">✏ Edit</button>
+                                    <button onClick={() => handleEditMeal(idx)}
+                                        className="text-green-500 text-sm hover:underline">✏ Edit</button>
                                 </div>
                             </div>
                         ))}
