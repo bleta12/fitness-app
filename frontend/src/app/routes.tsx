@@ -4,6 +4,7 @@ import Home from "@/features/dashboard/pages/Home";
 import AI from "@/features/ai/AI";
 import NutritionHydration from "@/components/NutritionHydration";
 import Social from "@/features/dashboard/pages/Social";
+import PremiumSubscription from "@/features/dashboard/pages/SubsandPayments"
 
 export const routes: RouteObject[] = [
     {
@@ -21,6 +22,10 @@ export const routes: RouteObject[] = [
     {
         path: "/social",
         element: <Social/>,
+    },
+    {
+        path: "/extra",
+        element: <PremiumSubscription />,
     },
     // Catch-all redirect to homepage
     {
