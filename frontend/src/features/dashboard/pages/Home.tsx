@@ -1,7 +1,7 @@
 
 import { User, Sparkles, Flame, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar.tsx";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const Home = () => {
 
