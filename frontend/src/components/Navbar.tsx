@@ -11,6 +11,7 @@ import {
     Carrot,
     MessageCircle,
     MoreHorizontal,
+    HeartPlus,
 } from "lucide-react";
 
 export interface NavLink {
@@ -29,6 +30,7 @@ const navLinks: NavLink[] = [
     { name: "Social", icon: MessageCircle, id: "Social", path: "/social" },
     { name: "Profile", icon: User, id: "Profile", path: "/profile" },
     { name: "Extra", icon: Zap, id: "Extra", path: "/extra" },
+    { name: "Recovery", icon: HeartPlus, id: "Recovery", path: "/recovery" }
 ];
 
 const Navbar: React.FC = () => {
@@ -53,11 +55,10 @@ const Navbar: React.FC = () => {
                         <li key={link.id}>
                             <Link
                                 to={link.path}
-                                className={`w-full flex items-center px-4 py-3 rounded-lg font-medium transition-colors ${
-                                    isActive(link.path)
-                                        ? "bg-green-100 text-green-800"
-                                        : "hover:bg-green-100 text-gray-600"
-                                }`}
+                                className={`w-full flex items-center px-4 py-3 rounded-lg font-medium transition-colors ${isActive(link.path)
+                                    ? "bg-green-100 text-green-800"
+                                    : "hover:bg-green-100 text-gray-600"
+                                    }`}
                             >
                                 <link.icon className="h-5 w-5 mr-3" />
                                 <span>{link.name}</span>
@@ -77,14 +78,12 @@ const Navbar: React.FC = () => {
                     <Link
                         key={link.id}
                         to={link.path}
-                        className={`flex flex-col items-center justify-center space-y-1 transition-colors ${
-                            isActive(link.path) ? "text-green-600" : "text-gray-400"
-                        }`}
+                        className={`flex flex-col items-center justify-center space-y-1 transition-colors ${isActive(link.path) ? "text-green-600" : "text-gray-400"
+                            }`}
                     >
                         <div
-                            className={`p-2 rounded-full transition-colors ${
-                                isActive(link.path) ? "bg-green-100" : ""
-                            }`}
+                            className={`p-2 rounded-full transition-colors ${isActive(link.path) ? "bg-green-100" : ""
+                                }`}
                         >
                             <link.icon className="h-6 w-6" />
                         </div>
@@ -95,14 +94,12 @@ const Navbar: React.FC = () => {
                 {hiddenLinks.length > 0 && (
                     <button
                         onClick={() => setShowMoreOptions(!showMoreOptions)}
-                        className={`flex flex-col items-center justify-center space-y-1 transition-colors ${
-                            showMoreOptions ? "text-green-600" : "text-gray-400"
-                        }`}
+                        className={`flex flex-col items-center justify-center space-y-1 transition-colors ${showMoreOptions ? "text-green-600" : "text-gray-400"
+                            }`}
                     >
                         <div
-                            className={`p-2 rounded-full transition-colors ${
-                                showMoreOptions ? "bg-green-100" : ""
-                            }`}
+                            className={`p-2 rounded-full transition-colors ${showMoreOptions ? "bg-green-100" : ""
+                                }`}
                         >
                             <MoreHorizontal className="h-6 w-6" />
                         </div>

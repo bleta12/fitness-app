@@ -6,6 +6,8 @@ import NutritionHydration from "@/features/dashboard/pages/NutritionHydration";
 import Social from "@/features/dashboard/pages/Social";
 import PremiumSubscription from "@/features/dashboard/pages/SubsandPayments";
 import Profile from "@/features/dashboard/pages/Profile";
+import RecoveryWellness from "@/features/dashboard/pages/RecoveryWellness";
+
 
 export const routes: RouteObject[] = [
     {
@@ -28,6 +30,10 @@ export const routes: RouteObject[] = [
         path: "/extra",
         element: <PremiumSubscription />,
     },
+    {
+        path: "/recovery",
+        element: <RecoveryWellness />,
+    },
     // Catch-all redirect to homepage
     {
         path: "*",
@@ -35,6 +41,6 @@ export const routes: RouteObject[] = [
     },
     {
         path: "/Profile",
-        element: <Profile/>,
+        element: <Profile />,
     },
 ];
