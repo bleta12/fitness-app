@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import Navbar from "@/components/Navbar";
+
 
 // --- Types ---
 type SleepEntry = { date: string; hours: number };
@@ -453,11 +455,16 @@ const StretchingRoutines: React.FC = () => {
 // --- Page wrapper ---
 const RecoveryWellness: React.FC = () => {
     return (
-        <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
-            <SectionHeader title="Recovery & Wellness" desc="Sleep, meditation and stretching to boost recovery and performance." />
-            <SleepTracking />
-            <Breathing />
-            <StretchingRoutines />
+        <div className="flex flex-col md:flex-row w-full min-h-screen bg-gray-50 text-gray-800 font-sans p-4 md:p-8">
+            {/* Navbar */}
+            <Navbar />
+
+            <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+                <SectionHeader title="Recovery & Wellness" desc="Sleep, meditation and stretching to boost recovery and performance." />
+                <SleepTracking />
+                <Breathing />
+                <StretchingRoutines />
+            </div>
         </div>
     );
 };
