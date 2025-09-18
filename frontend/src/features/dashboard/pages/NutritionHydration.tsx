@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import Navbar from "@/components/Navbar";
 
 type Meal = {
+    id?: number;
     name: string;
     calories: number;
     carbs: number;
@@ -26,15 +28,16 @@ const NutritionHydration: React.FC = () => {
 
     const [meals, setMeals] = useState<Meal[]>([]);
     const [mealName, setMealName] = useState("");
-    const [mealCalories, setMealCalories] = useState<number | "">("");
-    const [mealCarbs, setMealCarbs] = useState<number | "">("");
-    const [mealProtein, setMealProtein] = useState<number | "">("");
-    const [mealFat, setMealFat] = useState<number | "">("");
+    const [mealCalories, setMealCalories] = useState<number>(0);
+    const [mealCarbs, setMealCarbs] = useState<number>(0);
+    const [mealProtein, setMealProtein] = useState<number>(0);
+    const [mealFat, setMealFat] = useState<number>(0);
     const [mealTime, setMealTime] = useState("");
     const [mealType, setMealType] = useState("Breakfast");
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
     const [viewMode, setViewMode] = useState<"daily" | "weekly">("daily");
+    const [searchQuery, setSearchQuery] = useState("");
 
     // Toasts
     const [toasts, setToasts] = useState<Toast[]>([]);
@@ -47,19 +50,34 @@ const NutritionHydration: React.FC = () => {
         }, 2000);
     };
 
-    // --- LocalStorage load ---
+    // --- Load Data from Backend ---
     useEffect(() => {
-        const savedMeals = localStorage.getItem("meals");
-        const savedWater = localStorage.getItem("waterCups");
-        if (savedMeals) setMeals(JSON.parse(savedMeals));
-        if (savedWater) setWaterCups(Number(savedWater));
-    }, []);
+        const load = async () => {
+            await fetchMeals();
+            await fetchHydration();
+        };
+        load();
+    }, [viewMode]);
 
-    // --- LocalStorage save ---
-    useEffect(() => {
-        localStorage.setItem("meals", JSON.stringify(meals));
-        localStorage.setItem("waterCups", String(waterCups));
-    }, [meals, waterCups]);
+    const fetchMeals = async () => {
+        try {
+            const res = await axios.get(
+                `http://localhost:8080/nutrition/summary?mode=${viewMode}`
+            );
+            setMeals(res.data);
+        } catch (err) {
+            console.error("Error fetching meals:", err);
+        }
+    };
+
+    const fetchHydration = async () => {
+        try {
+            const res = await axios.get("http://localhost:8080/hydration/summary");
+            setWaterCups(res.data.waterCups);
+        } catch (err) {
+            console.error("Error fetching hydration:", err);
+        }
+    };
 
     // --- Hydration Reminder (every 2h) ---
     useEffect(() => {
@@ -71,21 +89,23 @@ const NutritionHydration: React.FC = () => {
     }, []);
 
     // --- Handlers ---
-    const addWater = () => {
-        setWaterCups((prev) => {
-            const newValue = Math.min(prev + 1, totalWaterCups);
+    const addWater = async () => {
+        try {
+            await axios.post("http://localhost:8080/hydration/add");
+            fetchHydration();
             showToast("💧 Great! You drank a cup of water.");
-            return newValue;
-        });
+        } catch (err) {
+            console.error("Error adding water:", err);
+        }
     };
 
-    const addOrSaveMeal = () => {
+    const addOrSaveMeal = async () => {
         if (
             mealName &&
-            mealCalories &&
-            mealCarbs !== "" &&
-            mealProtein !== "" &&
-            mealFat !== "" &&
+            mealCalories > 0 &&
+            mealCarbs >= 0 &&
+            mealProtein >= 0 &&
+            mealFat >= 0 &&
             mealTime &&
             mealType
         ) {
@@ -103,10 +123,10 @@ const NutritionHydration: React.FC = () => {
 
             const newMeal: Meal = {
                 name: mealName,
-                calories: Number(mealCalories),
-                carbs: Number(mealCarbs),
-                protein: Number(mealProtein),
-                fat: Number(mealFat),
+                calories: mealCalories,
+                carbs: mealCarbs,
+                protein: mealProtein,
+                fat: mealFat,
                 time: mealTime,
                 mealType,
                 icon,
@@ -114,23 +134,22 @@ const NutritionHydration: React.FC = () => {
                 date: new Date().toISOString().split("T")[0],
             };
 
-            if (editingIndex !== null) {
-                setMeals((prev) =>
-                    prev.map((m, idx) => (idx === editingIndex ? newMeal : m))
-                );
-                setEditingIndex(null);
-            } else {
-                setMeals((prev) => [...prev, newMeal]);
+            try {
+                await axios.post("http://localhost:8080/nutrition/add", newMeal);
+                fetchMeals();
+                showToast("🍴 Meal saved successfully!");
+            } catch (err) {
+                console.error("Error saving meal:", err);
             }
 
-            // Reset form
             setMealName("");
-            setMealCalories("");
-            setMealCarbs("");
-            setMealProtein("");
-            setMealFat("");
+            setMealCalories(0);
+            setMealCarbs(0);
+            setMealProtein(0);
+            setMealFat(0);
             setMealTime("");
             setMealType("Breakfast");
+            setEditingIndex(null);
         }
     };
 
@@ -148,16 +167,16 @@ const NutritionHydration: React.FC = () => {
 
     const handleCancelEdit = () => {
         setMealName("");
-        setMealCalories("");
-        setMealCarbs("");
-        setMealProtein("");
-        setMealFat("");
+        setMealCalories(0);
+        setMealCarbs(0);
+        setMealProtein(0);
+        setMealFat(0);
         setMealTime("");
         setMealType("Breakfast");
         setEditingIndex(null);
     };
 
-    // --- Filter Meals (daily/weekly) ---
+    // --- Filters and Totals ---
     const today = new Date().toISOString().split("T")[0];
     const last7days = new Date();
     last7days.setDate(last7days.getDate() - 6);
@@ -167,25 +186,26 @@ const NutritionHydration: React.FC = () => {
         return new Date(m.date) >= last7days;
     });
 
-    // --- Totals ---
     const totalCalories = filteredMeals.reduce((a, m) => a + m.calories, 0);
     const totalCarbs = filteredMeals.reduce((a, m) => a + m.carbs, 0);
     const totalProtein = filteredMeals.reduce((a, m) => a + m.protein, 0);
     const totalFat = filteredMeals.reduce((a, m) => a + m.fat, 0);
 
-    const totalMacros = totalCarbs * 4 + totalProtein * 4 + totalFat * 9 || 1;
-    const carbsPercent = Math.round((totalCarbs * 4 / totalMacros) * 100);
-    const proteinPercent = Math.round((totalProtein * 4 / totalMacros) * 100);
-    const fatPercent = Math.round((totalFat * 9 / totalMacros) * 100);
+    const totalMacros = totalCarbs * 4 + totalProtein * 4 + totalFat * 9;
+    const carbsPercent = totalMacros
+        ? Math.round((totalCarbs * 4 / totalMacros) * 100)
+        : 0;
+    const proteinPercent = totalMacros
+        ? Math.round((totalProtein * 4 / totalMacros) * 100)
+        : 0;
+    const fatPercent = totalMacros
+        ? Math.round((totalFat * 9 / totalMacros) * 100)
+        : 0;
 
     const caloriesGoal = 2000;
-    const caloriesPercentage = Math.min(
-        (totalCalories / caloriesGoal) * 100,
-        100
-    );
+    const caloriesPercentage = Math.min((totalCalories / caloriesGoal) * 100, 100);
     const waterPercentage = Math.min((waterCups / totalWaterCups) * 100, 100);
 
-    // --- Weekly calories helper ---
     const getWeekCalories = () => {
         const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         const result: { day: string; cal: number }[] = [];
@@ -203,13 +223,11 @@ const NutritionHydration: React.FC = () => {
 
     return (
         <div className="flex flex-col md:flex-row w-full min-h-screen bg-gray-50 text-gray-800 font-sans p-4 md:p-8">
-            {/* Navbar */}
             <Navbar />
-
 
             <main className="flex-1 p-6 overflow-y-auto">
                 <div className="max-w-4xl mx-auto">
-                    {/* Toasts */}
+                    {/* ✅ Toasts */}
                     <div className="fixed top-4 right-4 space-y-2 z-50">
                         {toasts.map((t) => (
                             <div
@@ -221,23 +239,21 @@ const NutritionHydration: React.FC = () => {
                         ))}
                     </div>
 
-                    {/* Header */}
+                    {/* ✅ Header */}
                     <header className="mb-6 text-center md:text-left">
                         <h1 className="text-2xl sm:text-3xl font-bold">
                             🌿 Nutrition & Hydration
                         </h1>
-                        <p className="text-sm text-gray-500 mt-1">
-                            Today: {today}
-                        </p>
+                        <p className="text-sm text-gray-500 mt-1">Today: {today}</p>
                     </header>
 
-                    {/* Toggle Daily/Weekly */}
+                    {/* ✅ Toggle Daily/Weekly */}
                     <div className="flex gap-2 mb-6">
                         <button
                             onClick={() => setViewMode("daily")}
                             className={`px-4 py-2 rounded ${viewMode === "daily"
-                                ? "bg-green-500 text-white"
-                                : "bg-gray-200 text-gray-700"
+                                    ? "bg-green-500 text-white"
+                                    : "bg-gray-200 text-gray-700"
                                 }`}
                         >
                             Daily
@@ -245,17 +261,16 @@ const NutritionHydration: React.FC = () => {
                         <button
                             onClick={() => setViewMode("weekly")}
                             className={`px-4 py-2 rounded ${viewMode === "weekly"
-                                ? "bg-green-500 text-white"
-                                : "bg-gray-200 text-gray-700"
+                                    ? "bg-green-500 text-white"
+                                    : "bg-gray-200 text-gray-700"
                                 }`}
                         >
                             Weekly
                         </button>
                     </div>
 
-                    {/* Calories & Water */}
+                    {/* ✅ Calories & Water */}
                     <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        {/* Calories */}
                         <div className="bg-white rounded-xl shadow p-4">
                             <p className="text-orange-500 font-medium">🔥 Calories</p>
                             <p className="text-3xl font-bold">
@@ -270,7 +285,6 @@ const NutritionHydration: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Water */}
                         <div className="bg-white p-4 rounded-xl shadow text-center">
                             <p className="text-lg font-semibold mb-4">💧 Water Intake</p>
                             <div className="relative w-28 h-28 mx-auto mb-4">
@@ -297,7 +311,7 @@ const NutritionHydration: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* Macronutrients */}
+                    {/* ✅ Macronutrients */}
                     <section className="bg-white rounded-xl shadow p-6 mb-6">
                         <p className="font-medium text-gray-700 mb-4">Macronutrients</p>
                         <div className="flex justify-around text-center">
@@ -325,7 +339,7 @@ const NutritionHydration: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* Add Meal Form */}
+                    {/* ✅ Add Meal Form */}
                     <section className="bg-white rounded-xl shadow p-6 mb-6">
                         <p className="font-medium text-gray-700 mb-4">🍴 Add Meal</p>
                         <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-4">
@@ -338,29 +352,29 @@ const NutritionHydration: React.FC = () => {
                             />
                             <input
                                 type="number"
-                                value={mealCalories}
-                                onChange={(e) => setMealCalories(Number(e.target.value))}
+                                value={mealCalories || ""}
+                                onChange={(e) => setMealCalories(Number(e.target.value) || 0)}
                                 placeholder="Calories"
                                 className="border rounded px-3 py-2"
                             />
                             <input
                                 type="number"
-                                value={mealCarbs}
-                                onChange={(e) => setMealCarbs(Number(e.target.value))}
+                                value={mealCarbs || ""}
+                                onChange={(e) => setMealCarbs(Number(e.target.value) || 0)}
                                 placeholder="Carbs"
                                 className="border rounded px-3 py-2"
                             />
                             <input
                                 type="number"
-                                value={mealProtein}
-                                onChange={(e) => setMealProtein(Number(e.target.value))}
+                                value={mealProtein || ""}
+                                onChange={(e) => setMealProtein(Number(e.target.value) || 0)}
                                 placeholder="Protein"
                                 className="border rounded px-3 py-2"
                             />
                             <input
                                 type="number"
-                                value={mealFat}
-                                onChange={(e) => setMealFat(Number(e.target.value))}
+                                value={mealFat || ""}
+                                onChange={(e) => setMealFat(Number(e.target.value) || 0)}
                                 placeholder="Fat"
                                 className="border rounded px-3 py-2"
                             />
@@ -401,9 +415,9 @@ const NutritionHydration: React.FC = () => {
                             {filteredMeals.length === 0 && (
                                 <p className="text-gray-400 text-sm">No meals added yet.</p>
                             )}
-                            {filteredMeals.map((meal, idx) => (
+                            {filteredMeals.map((meal) => (
                                 <div
-                                    key={idx}
+                                    key={meal.id || meal.name + meal.time}
                                     className="flex items-center justify-between bg-gray-50 rounded-lg p-3 shadow-sm"
                                 >
                                     <div
@@ -414,13 +428,14 @@ const NutritionHydration: React.FC = () => {
                                     <div className="flex-1 ml-4">
                                         <p className="font-medium text-gray-800">{meal.name}</p>
                                         <p className="text-sm text-gray-500">
-                                            {meal.calories} cal | {meal.carbs}C {meal.protein}P {meal.fat}F
+                                            {meal.calories} cal | {meal.carbs}C {meal.protein}P{" "}
+                                            {meal.fat}F
                                         </p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-sm text-gray-500">{meal.time}</p>
                                         <button
-                                            onClick={() => handleEditMeal(idx)}
+                                            onClick={() => handleEditMeal(meals.indexOf(meal))}
                                             className="text-green-500 text-sm hover:underline"
                                         >
                                             ✏ Edit
@@ -431,29 +446,23 @@ const NutritionHydration: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* Search Food */}
+                    {/* ✅ Search Food */}
                     <section className="bg-white rounded-xl shadow p-6 mb-6">
                         <p className="font-medium text-gray-700 mb-4">🔍 Search Food</p>
                         <input
                             type="text"
                             placeholder="Search meals..."
-                            onChange={(e) => {
-                                const query = e.target.value.toLowerCase();
-                                setMeals((prev) =>
-                                    prev.map((meal) => ({
-                                        ...meal,
-                                        hidden: query && !meal.name.toLowerCase().includes(query),
-                                    }))
-                                );
-                            }}
+                            onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
                             className="w-full border rounded px-3 py-2 mb-4"
                         />
                         <div className="space-y-3">
                             {meals
-                                .filter((meal: any) => !meal.hidden)
-                                .map((meal, idx) => (
+                                .filter((meal) =>
+                                    meal.name.toLowerCase().includes(searchQuery)
+                                )
+                                .map((meal) => (
                                     <div
-                                        key={idx}
+                                        key={meal.id || meal.name + meal.time}
                                         className="flex items-center justify-between bg-gray-50 rounded-lg p-3 shadow-sm"
                                     >
                                         <div
