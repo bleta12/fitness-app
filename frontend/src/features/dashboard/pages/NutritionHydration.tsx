@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Navbar from "@/components/Navbar";
+import useWebSocketNotifications from "@/hooks/useWebSocketNotifications";
 
 type Meal = {
     id?: number;
@@ -47,8 +48,11 @@ const NutritionHydration: React.FC = () => {
         setToasts((prev) => [...prev, { id, message }]);
         setTimeout(() => {
             setToasts((prev) => prev.filter((t) => t.id !== id));
-        }, 2000);
+        }, 3000);
     };
+
+    // --- WebSocket Notifications (nëse ke backend WS, do shfaqë toast kur vjen mesazhi) ---
+    useWebSocketNotifications(showToast);
 
     // --- Load Data from Backend ---
     useEffect(() => {
@@ -79,12 +83,11 @@ const NutritionHydration: React.FC = () => {
         }
     };
 
-    // --- Hydration Reminder (every 2h) ---
+    // --- Optional local reminder çdo 2 orë
     useEffect(() => {
         const reminder = setInterval(() => {
             showToast("💧 Time to drink water!");
         }, 1000 * 60 * 60 * 2);
-
         return () => clearInterval(reminder);
     }, []);
 
@@ -92,7 +95,8 @@ const NutritionHydration: React.FC = () => {
     const addWater = async () => {
         try {
             await axios.post("http://localhost:8080/hydration/add");
-            fetchHydration();
+            setWaterCups((prev) => Math.min(prev + 1, totalWaterCups));
+            fetchHydration(); // sinkronizo me backend
             showToast("💧 Great! You drank a cup of water.");
         } catch (err) {
             console.error("Error adding water:", err);
@@ -227,33 +231,43 @@ const NutritionHydration: React.FC = () => {
 
             <main className="flex-1 p-6 overflow-y-auto">
                 <div className="max-w-4xl mx-auto">
-                    {/* ✅ Toasts */}
-                    <div className="fixed top-4 right-4 space-y-2 z-50">
-                        {toasts.map((t) => (
-                            <div
-                                key={t.id}
-                                className="bg-blue-500 text-white px-4 py-2 rounded shadow-lg animate-fade-in"
-                            >
-                                {t.message}
-                            </div>
-                        ))}
+                    {/* ✅ Toasts (për mesazhin e ujit) */}
+                    <div className="fixed top-6 right-6 space-y-4 z-50">
+                        {toasts.map((t) => {
+                            const isImportant = t.message.includes("💧 Time to drink water!");
+                            return (
+                                <div
+                                    key={t.id}
+                                    className={`rounded-xl shadow-lg animate-fade-in transition-all duration-300 
+                    ${isImportant
+                                            ? "bg-gradient-to-r from-blue-500 to-blue-700 px-6 py-4 shadow-2xl"
+                                            : "bg-blue-500 px-4 py-2"
+                                        } text-white`}
+                                >
+                                    <p className={isImportant ? "text-lg md:text-xl font-bold" : "text-sm"}>
+                                        {t.message}
+                                    </p>
+                                </div>
+                            );
+                        })}
                     </div>
 
-                    {/* ✅ Header */}
-                    <header className="mb-6 text-center md:text-left">
-                        <h1 className="text-2xl sm:text-3xl font-bold">
-                            🌿 Nutrition & Hydration
-                        </h1>
-                        <p className="text-sm text-gray-500 mt-1">Today: {today}</p>
-                    </header>
+                    {/* ✅ Motivational Card */}
+                    <section className="bg-gradient-to-r from-green-400 to-blue-500 rounded-xl shadow p-6 mb-6 text-white">
+                        <h2 className="text-xl font-bold mb-2">💡 Daily Motivation</h2>
+                        <p className="text-sm md:text-base">
+                            “Stay consistent with your meals 🌱, drink enough water 💧,
+                            and your body will thank you with more energy and focus ✨.”
+                        </p>
+                    </section>
 
                     {/* ✅ Toggle Daily/Weekly */}
                     <div className="flex gap-2 mb-6">
                         <button
                             onClick={() => setViewMode("daily")}
                             className={`px-4 py-2 rounded ${viewMode === "daily"
-                                    ? "bg-green-500 text-white"
-                                    : "bg-gray-200 text-gray-700"
+                                ? "bg-green-500 text-white"
+                                : "bg-gray-200 text-gray-700"
                                 }`}
                         >
                             Daily
@@ -261,8 +275,8 @@ const NutritionHydration: React.FC = () => {
                         <button
                             onClick={() => setViewMode("weekly")}
                             className={`px-4 py-2 rounded ${viewMode === "weekly"
-                                    ? "bg-green-500 text-white"
-                                    : "bg-gray-200 text-gray-700"
+                                ? "bg-green-500 text-white"
+                                : "bg-gray-200 text-gray-700"
                                 }`}
                         >
                             Weekly
@@ -428,8 +442,7 @@ const NutritionHydration: React.FC = () => {
                                     <div className="flex-1 ml-4">
                                         <p className="font-medium text-gray-800">{meal.name}</p>
                                         <p className="text-sm text-gray-500">
-                                            {meal.calories} cal | {meal.carbs}C {meal.protein}P{" "}
-                                            {meal.fat}F
+                                            {meal.calories} cal | {meal.carbs}C {meal.protein}P {meal.fat}F
                                         </p>
                                     </div>
                                     <div className="text-right">
@@ -481,9 +494,10 @@ const NutritionHydration: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* Charts */}
+                    {/* ✅ Charts */}
                     <section className="bg-white rounded-xl shadow p-6 mb-6">
                         <h2 className="text-xl font-semibold mb-4">📊 Your Progress</h2>
+
                         {/* Pie Chart Macros */}
                         <div className="flex flex-col items-center mb-6">
                             <div
@@ -497,9 +511,18 @@ const NutritionHydration: React.FC = () => {
                                 }}
                             />
                             <div className="flex gap-4 mt-3 text-sm">
-                                <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-500 inline-block rounded"></span> Carbs {carbsPercent}%</span>
-                                <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-500 inline-block rounded"></span> Protein {proteinPercent}%</span>
-                                <span className="flex items-center gap-1"><span className="w-3 h-3 bg-yellow-500 inline-block rounded"></span> Fat {fatPercent}%</span>
+                                <span className="flex items-center gap-1">
+                                    <span className="w-3 h-3 bg-green-500 inline-block rounded" />
+                                    Carbs {carbsPercent}%
+                                </span>
+                                <span className="flex items-center gap-1">
+                                    <span className="w-3 h-3 bg-red-500 inline-block rounded" />
+                                    Protein {proteinPercent}%
+                                </span>
+                                <span className="flex items-center gap-1">
+                                    <span className="w-3 h-3 bg-yellow-500 inline-block rounded" />
+                                    Fat {fatPercent}%
+                                </span>
                             </div>
                         </div>
 
@@ -523,21 +546,30 @@ const NutritionHydration: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* Badges */}
+                    {/* ✅ Badges */}
                     <section className="w-full max-w-3xl mt-6">
                         <h2 className="text-xl font-semibold mb-4">🏅 Achievements</h2>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <div className={`p-4 rounded-xl shadow text-center ${waterCups >= 8 ? "bg-blue-100" : "bg-gray-100"}`}>
+                            <div
+                                className={`p-4 rounded-xl shadow text-center ${waterCups >= 8 ? "bg-blue-100" : "bg-gray-100"
+                                    }`}
+                            >
                                 <p className="text-3xl">💧</p>
                                 <p className="font-medium">Hydration Master</p>
                                 <p className="text-xs text-gray-500">8 cups in a day</p>
                             </div>
-                            <div className={`p-4 rounded-xl shadow text-center ${totalCalories >= 2000 ? "bg-orange-100" : "bg-gray-100"}`}>
+                            <div
+                                className={`p-4 rounded-xl shadow text-center ${totalCalories >= 2000 ? "bg-orange-100" : "bg-gray-100"
+                                    }`}
+                            >
                                 <p className="text-3xl">🔥</p>
                                 <p className="font-medium">Calorie Crusher</p>
                                 <p className="text-xs text-gray-500">2000 cal goal</p>
                             </div>
-                            <div className={`p-4 rounded-xl shadow text-center ${filteredMeals.length > 0 ? "bg-green-100" : "bg-gray-100"}`}>
+                            <div
+                                className={`p-4 rounded-xl shadow text-center ${filteredMeals.length > 0 ? "bg-green-100" : "bg-gray-100"
+                                    }`}
+                            >
                                 <p className="text-3xl">📅</p>
                                 <p className="font-medium">Daily Logger</p>
                                 <p className="text-xs text-gray-500">Log meals today</p>
@@ -545,14 +577,16 @@ const NutritionHydration: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* Export / Import */}
+                    {/* ✅ Export / Import */}
                     <section className="w-full max-w-3xl mt-6 bg-white rounded-xl shadow p-6">
                         <h2 className="text-xl font-semibold mb-4">📂 Data Export / Import</h2>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <button
                                 onClick={() => {
                                     const data = { meals, waterCups };
-                                    const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+                                    const blob = new Blob([JSON.stringify(data)], {
+                                        type: "application/json",
+                                    });
                                     const url = URL.createObjectURL(blob);
                                     const a = document.createElement("a");
                                     a.href = url;
