@@ -5,8 +5,7 @@
     "axios": "^1.12.2",
     "feather-icons": "^4.29.2",
     "react-icons": "^5.5.0",
+    "recharts": "^3.2.1",
     "sockjs-client": "^1.6.1"
-    "axios": "^1.12.2",
-    "recharts": "^3.2.1"
   }
 }

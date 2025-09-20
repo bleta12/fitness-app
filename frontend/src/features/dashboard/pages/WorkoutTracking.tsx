@@ -17,21 +17,20 @@ interface Workout {
 }
 
 const ProgressPage = ({ workouts }: { workouts: Workout[] }) => {
-    const allExercises = workouts.flatMap(w => w.exercises.map(e => e.name));
+    const allExercises = workouts.flatMap(w => w.exercises.map(e => e.name.toLowerCase()));
     const uniqueExercises = Array.from(new Set(allExercises));
     const [selectedExercise, setSelectedExercise] = useState(uniqueExercises[0] || '');
 
     useEffect(() => {
-        
         if (uniqueExercises.length > 0 && (!selectedExercise || !uniqueExercises.includes(selectedExercise))) {
             setSelectedExercise(uniqueExercises[0]);
         }
     }, [uniqueExercises]);
     
     const chartData = workouts
-        .filter(w => w.exercises.some(e => e.name === selectedExercise))
+        .filter(w => w.exercises.some(e => e.name.toLowerCase() === selectedExercise))
         .map(w => {
-            const exercise = w.exercises.find(e => e.name === selectedExercise);
+            const exercise = w.exercises.find(e => e.name.toLowerCase() === selectedExercise);
             return {
                 date: w.date,
                 weight: exercise?.weight || 0,
@@ -134,7 +133,6 @@ const WorkoutTracking = () => {
                 parsedWorkouts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
                 setWorkouts(parsedWorkouts);
             } else {
-                // Dummy data for when localStorage is empty
                 const dummyWorkouts = [
                     {
                         id: crypto.randomUUID(),
@@ -182,44 +180,31 @@ const WorkoutTracking = () => {
         }
     }, [workouts]);
 
-    const fetchAiSuggestions = async () => {
-        setAiLoading(true);
-        setAiError('');
-        setAiSuggestions(null);
+const fetchAiSuggestions = async () => {
+    setAiLoading(true);
+    setAiError('');
+    setAiSuggestions(null);
 
-        const prompt = "Provide 5 short, concise, comma-separated suggestions for a full-body workout. For example: 'Squats, Pushups, Deadlifts, Overhead Press, Pull-ups'. Just the list of exercises, no other text.";
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=YOUR_API_KEY_HERE`;
-        const payload = {
-            contents: [{ parts: [{ text: prompt }] }],
-        };
+    try {
+     
 
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`API error: ${errorData.error.message}`);
-            }
+        // MOCKED data  just for testing
+        const mockedSuggestions = ['Squats', 'Pushups', 'Deadlifts', 'Overhead Press', 'Pull-ups'];  // to be replaced with :const response = await fetch('/api/ai-suggestions');
+//const data = await response.json();
+//setAiSuggestions(data.suggestions);
 
-            const result = await response.json();
-            const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (text) {
-                const suggestions = text.split(',').map((s: string) => s.trim());
-                setAiSuggestions(suggestions);
-            } else {
-                setAiError('Could not generate suggestions.');
-            }
-        } catch (error: any) {
-            console.error("Error fetching AI suggestions:", error);
-            setAiError(`Failed to fetch AI suggestions. Make sure your API key is correct and valid. Error: ${error.message}`);
-        } finally {
-            setAiLoading(false);
-        }
-    };
+        
+        
+        await new Promise(res => setTimeout(res, 500));
+
+        setAiSuggestions(mockedSuggestions);
+    } catch (error: any) {
+        console.error("Error fetching AI suggestions:", error);
+        setAiError('Failed to fetch AI suggestions.');
+    } finally {
+        setAiLoading(false);
+    }
+};
 
     const handleSaveWorkout = () => {
         if (!newWorkoutDate || newExercises.length === 0) {
@@ -254,7 +239,8 @@ const WorkoutTracking = () => {
             const exerciseToAdd = {
                 ...currentExercise,
                 id: newId,
-                duration: currentExercise.duration || 0 
+                name: currentExercise.name.toLowerCase(),
+                duration: currentExercise.duration || 0
             };
             setNewExercises([...newExercises, exerciseToAdd]);
             setCurrentExercise({ id: '', name: '', sets: 0, reps: 0, weight: 0, duration: 0 });
@@ -366,7 +352,7 @@ const WorkoutTracking = () => {
                                                 <p className="text-sm text-gray-600">
                                                     {exercise.sets} sets x {exercise.reps} reps
                                                     {exercise.weight > 0 && <span> @ {exercise.weight} kg</span>}
-                                                    {exercise.duration && exercise.duration > 0 && <span> for {exercise.duration} min</span>}
+                                                    {exercise.duration !== undefined && <span> for {exercise.duration} min</span>}
                                                 </p>
                                             </div>
                                             <button
@@ -499,7 +485,7 @@ const WorkoutTracking = () => {
                                                         <p className="text-sm text-gray-600">
                                                             <span className="font-medium text-gray-700">{exercise.sets}</span> sets x <span className="font-medium text-gray-700">{exercise.reps}</span> reps
                                                             {exercise.weight > 0 && <span> @ <span className="font-medium text-gray-700">{exercise.weight}</span> kg</span>}
-                                                            {exercise.duration && exercise.duration > 0 && <span> for <span className="font-medium text-gray-700">{exercise.duration}</span> min</span>}
+                                                            {exercise.duration !== undefined && <span> for <span className="font-medium text-gray-700">{exercise.duration}</span> min</span>}
                                                         </p>
                                                     </div>
                                                 </div>
