@@ -45,10 +45,32 @@ const Navbar: React.FC = () => {
     // Desktop Navigation
     const DesktopNav = () => (
         <div className="hidden md:flex flex-col w-64 bg-green-50 rounded-2xl shadow-lg p-6 mr-8">
+            
+            {/* Logo */}
             <div className="flex items-center mb-10">
                 <Zap className="h-8 w-8 text-blue-500 mr-2" />
                 <h1 className="text-2xl font-bold text-gray-900">FitAI</h1>
             </div>
+
+            {/* LOGIN & SIGNUP BUTTONS ABOVE HOME */}
+            <div className="mb-4 space-y-2">
+                <Link
+                    to="/login"
+                    className="w-full flex items-center px-4 py-3 rounded-lg font-medium text-white bg-blue-500 hover:bg-blue-600"
+                >
+                    <User className="h-5 w-5 mr-3" />
+                    Log in
+                </Link>
+                <Link
+                    to="/signup"
+                    className="w-full flex items-center px-4 py-3 rounded-lg font-medium text-white bg-green-500 hover:bg-green-600"
+                >
+                    <User className="h-5 w-5 mr-3" />
+                    Sign up
+                </Link>
+            </div>
+
+            {/* Main Navigation Links */}
             <nav className="flex-grow">
                 <ul className="space-y-2">
                     {navLinks.map((link) => (
@@ -135,3 +157,6 @@ const Navbar: React.FC = () => {
 };
 
 export default Navbar;
+
+
+

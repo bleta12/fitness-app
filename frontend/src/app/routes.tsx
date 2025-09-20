@@ -8,6 +8,8 @@ import PremiumSubscription from "@/features/dashboard/pages/SubsandPayments";
 import Profile from "@/features/dashboard/pages/Profile";
 import RecoveryWellness from "@/features/dashboard/pages/RecoveryWellness";
 import Leaderboard from "@/features/dashboard/pages/Leaderboard";
+import Login from "@/components/Login";
+import Signup from "@/components/Signup";
 
 export const routes: RouteObject[] = [
   {
@@ -47,4 +49,12 @@ export const routes: RouteObject[] = [
     path: "*",
     element: <Navigate to="/" replace />,
   },
+  {
+    path: "/Login",
+    element: <Login/>,
+  },
+  {
+    path: "/Signup",
+    element: <Signup/>,
+  }
 ];
