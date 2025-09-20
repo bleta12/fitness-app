@@ -24,7 +24,7 @@ export interface NavLink {
 const navLinks: NavLink[] = [
     { name: "Home", icon: Home, id: "Home", path: "/" },
     { name: "AI Plans", icon: Sparkles, id: "AI", path: "/ai" },
-    { name: "Workouts", icon: Dumbbell, id: "Workouts", path: "/workouts" },
+    { name: "WorkoutTracking", icon: Dumbbell, id: "WorkoutTracking", path: "/WorkoutTracking" },
     { name: "Progress", icon: TrendingUp, id: "Progress", path: "/progress" },
     { name: "Nutrition", icon: Carrot, id: "Nutrition", path: "/nutrition" },
     { name: "Social", icon: MessageCircle, id: "Social", path: "/social" },
