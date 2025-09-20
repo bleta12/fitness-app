@@ -1,93 +1,78 @@
 import { useState, useEffect } from "react";
-import io from "socket.io-client";
-import ChatHeader from "./ChatHeader.tsx";
-import ChatBox from "./ChatBox.tsx";
-import Navbar from "@/components/Navbar.tsx";
+import ChatBox from "./ChatBox";
+import ChatHeader from "./ChatHeader";
+import Navbar from "@/components/Navbar";
+import { io } from "socket.io-client";
 
-const socket = io("http://localhost:4000");
-
-type Message = {
-  senderId: string;
-  text: string;
-  time: string;
-  senderType: "user" | "friend";
-};
-
-type Contact = {
-  id: string;
-  name: string;
-  status: string;
-  avatarColor: string;
-};
-
-const contacts: Record<string, Contact> = {
-  "1": { id: "1", name: "Alex Turner", status: "Online", avatarColor: "bg-yellow-200" },
-  "2": { id: "3", name: "Trainer Chen", status: "Offline", avatarColor: "bg-green-200" },
-  "3": { id: "2", name: "Jessica Lee", status: "Online", avatarColor: "bg-pink-200" },
-  "4": { id: "4", name: "Coach Martinez", status: "Online", avatarColor: "bg-purple-200" },
-};
-
-export const chatState: {
-  activeContact: Contact | null;
-  setActiveContact: (c: Contact | null) => void;
-  chat: Message[];
-  setChat: (m: Message[]) => void;
-  message: string;
-  setMessage: (m: string) => void;
-  typing: boolean;
-  setTyping: (b: boolean) => void;
-} = {} as any;
+export const socket = io("http://localhost:4000");
+export const chatState: any = {};
 
 function Social() {
-  const [activeContact, setActiveContact] = useState<Contact | null>(null);
-  const [chat, setChat] = useState<Message[]>([]);
+  const [userId] = useState(() => crypto.randomUUID?.() || `user_${Date.now()}`);
+
+  const contacts = [
+    { id: "1", name: "Alex Turner", status: "Online", avatarColor: "bg-yellow-200" },
+    { id: "2", name: "Jessica Lee", status: "Online", avatarColor: "bg-pink-200" },
+    { id: "3", name: "Trainer Chen", status: "Offline", avatarColor: "bg-green-200" },
+    { id: "4", name: "Coach Martinez", status: "Online", avatarColor: "bg-purple-200" },
+  ];
+
+  const [activeContact, setActiveContact] = useState<any>(null);
+  const [chatMap, setChatMap] = useState<Record<string, any[]>>({});
   const [message, setMessage] = useState("");
   const [typing, setTyping] = useState(false);
 
-  // Expose state globally to child components
-  Object.assign(chatState, { activeContact, setActiveContact, chat, setChat, message, setMessage, typing, setTyping });
-
-  const userId = "user123";
+  Object.assign(chatState, {
+    activeContact,
+    setActiveContact,
+    chatMap,
+    setChatMap,
+    message,
+    setMessage,
+    typing,
+    setTyping,
+    userId,
+  });
 
   useEffect(() => {
     socket.emit("register", userId);
 
-    socket.on("receive_message", (msg: Message) => {
-      if (activeContact && msg.senderId === activeContact.id) setChat([...chat, msg]);
+    //Listen for messages
+    socket.on("receive_message", (msg) => {
+      setChatMap((prev) => {
+        const chat = prev[msg.senderId] || [];
+        return {
+          ...prev,
+          [msg.senderId]: [...chat, msg],
+        };
+      });
     });
 
-    socket.on("typing", (senderId: string) => {
-      if (activeContact && senderId === activeContact.id) {
-        setTyping(true);
-        setTimeout(() => setTyping(false), 1500);
-      }
-    });
-
+    // Cleanup on unmount
     return () => {
       socket.off("receive_message");
-      socket.off("typing");
     };
-  }, [activeContact, chat]);
+  }, [userId]);
 
   return (
     <div className="flex h-screen">
       <div className="flex-1 flex bg-gray-100 p-8">
-      <Navbar />
+        <Navbar />
+        {/* Contacts Sidebar */}
         <div className="w-1/4 bg-white rounded-lg shadow flex flex-col mr-5">
           <div className="flex border-b">
-            <button className="flex-1 py-3 px-4 text-center font-semibold border-b-2 border-blue-500">Friends</button>
+            <button className="flex-1 py-3 px-4 text-center font-semibold border-b-2 border-blue-500">
+              Friends
+            </button>
           </div>
           <div className="flex-1 overflow-y-auto">
-            {Object.values(contacts).map((contact) => (
+            {contacts.map((contact) => (
               <div
                 key={contact.id}
                 className={`flex items-center p-3 hover:bg-gray-50 cursor-pointer ${
                   activeContact?.id === contact.id ? "bg-blue-50" : ""
                 }`}
-                onClick={() => {
-                  setActiveContact(contact);
-                  setChat([]);
-                }}
+                onClick={() => setActiveContact(contact)}
               >
                 <div className={`w-10 h-10 rounded-full ${contact.avatarColor} mr-3`}></div>
                 <div>
