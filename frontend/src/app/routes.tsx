@@ -7,40 +7,44 @@ import Social from "@/features/dashboard/pages/Social";
 import PremiumSubscription from "@/features/dashboard/pages/SubsandPayments";
 import Profile from "@/features/dashboard/pages/Profile";
 import RecoveryWellness from "@/features/dashboard/pages/RecoveryWellness";
-
+import Leaderboard from "@/features/dashboard/pages/Leaderboard";
 
 export const routes: RouteObject[] = [
-    {
-        path: "/",
-        element: <Home />,
-    },
-    {
-        path: "/ai",
-        element: <AI />,
-    },
-    {
-        path: "/nutrition",
-        element: <NutritionHydration />,
-    },
-    {
-        path: "/social",
-        element: <Social />,
-    },
-    {
-        path: "/extra",
-        element: <PremiumSubscription />,
-    },
-    {
-        path: "/recovery",
-        element: <RecoveryWellness />,
-    },
-    // Catch-all redirect to homepage
-    {
-        path: "*",
-        element: <Navigate to="/" replace />,
-    },
-    {
-        path: "/Profile",
-        element: <Profile />,
-    },
+  {
+    path: "/",
+    element: <Home />,
+  },
+  {
+    path: "/ai",
+    element: <AI />,
+  },
+  {
+    path: "/leaderboard",
+    element: <Leaderboard />,
+  },
+  {
+    path: "/nutrition",
+    element: <NutritionHydration />,
+  },
+  {
+    path: "/social",
+    element: <Social />,
+  },
+  {
+    path: "/extra",
+    element: <PremiumSubscription />,
+  },
+  {
+    path: "/recovery",
+    element: <RecoveryWellness />,
+  },
+  {
+    path: "/Profile",
+    element: <Profile />,
+  },
+  // Catch-all redirect to homepage
+  {
+    path: "*",
+    element: <Navigate to="/" replace />,
+  },
 ];

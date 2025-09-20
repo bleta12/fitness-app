@@ -25,7 +25,7 @@ const navLinks: NavLink[] = [
     { name: "Home", icon: Home, id: "Home", path: "/" },
     { name: "AI Plans", icon: Sparkles, id: "AI", path: "/ai" },
     { name: "Workouts", icon: Dumbbell, id: "Workouts", path: "/workouts" },
-    { name: "Progress", icon: TrendingUp, id: "Progress", path: "/progress" },
+    { name: "Leaderboard", icon: TrendingUp, id: "Leaderboard", path: "/leaderboard" },
     { name: "Nutrition", icon: Carrot, id: "Nutrition", path: "/nutrition" },
     { name: "Social", icon: MessageCircle, id: "Social", path: "/social" },
     { name: "Profile", icon: User, id: "Profile", path: "/profile" },
