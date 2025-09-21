@@ -232,21 +232,26 @@ const fetchAiSuggestions = async () => {
             console.error("Error saving workout to local storage: ", e);
         }
     };
-
-    const handleAddExercise = () => {
-        if (currentExercise.name && currentExercise.sets > 0 && currentExercise.reps > 0) {
-            const newId = crypto.randomUUID();
-            const exerciseToAdd = {
-                ...currentExercise,
-                id: newId,
-                name: currentExercise.name.toLowerCase(),
-                duration: currentExercise.duration || 0
-            };
-            setNewExercises([...newExercises, exerciseToAdd]);
-            setCurrentExercise({ id: '', name: '', sets: 0, reps: 0, weight: 0, duration: 0 });
-            setIsAddingExercise(false);
-        }
+const handleAddExercise = () => {
+  if (
+    currentExercise.name &&
+    currentExercise.sets > 0 &&
+    currentExercise.reps > 0 &&
+    currentExercise.weight >= 0 &&   
+    (currentExercise.duration ?? 0) >= 0       
+  ) {
+    const newId = crypto.randomUUID();
+    const exerciseToAdd = {
+      ...currentExercise,
+      id: newId,
+      name: currentExercise.name.toLowerCase(),
+      duration: currentExercise.duration ?? 0
     };
+    setNewExercises([...newExercises, exerciseToAdd]);
+    setCurrentExercise({ id: '', name: '', sets: 0, reps: 0, weight: 0, duration: 0 });
+    setIsAddingExercise(false);
+  }
+};
 
     const handleDeleteWorkout = (workoutId: string) => {
         try {
@@ -365,75 +370,89 @@ const fetchAiSuggestions = async () => {
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-gray-500 italic mb-4">No exercises added yet.</p>
+                                <p className="text-darkgray-500 italic mb-4">No exercises added yet.</p>
                             )}
                             
                             {isAddingExercise ? (
-                                <div className="bg-gray-200/80 p-4 rounded-lg shadow-inner mb-4 border border-gray-300">
-                                    <h4 className="font-bold mb-2 text-gray-800">Add New Exercise</h4>
-                                    <div className="space-y-2">
-                                        <input
-                                            type="text"
-                                            placeholder="Exercise Name (e.g., Squats)"
-                                            value={currentExercise.name}
-                                            onChange={(e) => setCurrentExercise({ ...currentExercise, name: e.target.value })}
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
-                                        />
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                            <input
-                                                type="number"
-                                                placeholder="Sets"
-                                                value={currentExercise.sets || ''}
-                                                onChange={(e) => setCurrentExercise({ ...currentExercise, sets: parseInt(e.target.value) || 0 })}
-                                                className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
-                                            />
-                                            <input
-                                                type="number"
-                                                placeholder="Reps"
-                                                value={currentExercise.reps || ''}
-                                                onChange={(e) => setCurrentExercise({ ...currentExercise, reps: parseInt(e.target.value) || 0 })}
-                                                className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
-                                            />
-                                            <input
-                                                type="number"
-                                                placeholder="Weight (kg)"
-                                                value={currentExercise.weight || ''}
-                                                onChange={(e) => setCurrentExercise({ ...currentExercise, weight: parseInt(e.target.value) || 0 })}
-                                                className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
-                                            />
-                                            <input
-                                                type="number"
-                                                placeholder="Duration (min)"
-                                                value={currentExercise.duration || ''}
-                                                onChange={(e) => setCurrentExercise({ ...currentExercise, duration: parseInt(e.target.value) || 0 })}
-                                                className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="flex space-x-2 mt-4">
-                                        <button
-                                            onClick={handleAddExercise}
-                                            className="relative overflow-hidden group flex-1 py-2 rounded-lg font-semibold text-white transform active:scale-95 transition-all duration-300 shadow-lg"
-                                        >
-                                            <span className="absolute inset-0 bg-[#008080]/80 rounded-lg opacity-80 group-hover:opacity-100 transition-opacity duration-300"></span>
-                                            <span className="relative z-10">Save Exercise</span>
-                                        </button>
-                                        <button
-                                            onClick={() => setIsAddingExercise(false)}
-                                            className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400 transition"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={() => setIsAddingExercise(true)}
-                                    className="w-full flex items-center justify-center bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400 transition border border-gray-400"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus mr-2"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add Exercise
-                                </button>
-                            )}
+  <div className="bg-gray-200/80 p-4 rounded-lg shadow-inner mb-4 border border-gray-300">
+    <h4 className="font-bold mb-2 text-gray-800">Add New Exercise</h4>
+    <div className="space-y-2">
+      <input
+        type="text"
+        placeholder="Exercise Name (e.g., Squats)"
+        value={currentExercise.name}
+        onChange={(e) => setCurrentExercise({ ...currentExercise, name: e.target.value })}
+        className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
+      />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <input
+          type="number"
+          min={0}
+          placeholder="Sets"
+          value={currentExercise.sets || ''}
+          onChange={(e) =>
+            setCurrentExercise({ ...currentExercise, sets: Math.max(0, parseInt(e.target.value) || 0) })
+          }
+          className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
+        />
+        <input
+          type="number"
+          min={0}
+          placeholder="Reps"
+          value={currentExercise.reps || ''}
+          onChange={(e) =>
+            setCurrentExercise({ ...currentExercise, reps: Math.max(0, parseInt(e.target.value) || 0) })
+          }
+          className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
+        />
+        <input
+          type="number"
+          min={0}
+          placeholder="Weight (kg)"
+          value={currentExercise.weight || ''}
+          onChange={(e) =>
+            setCurrentExercise({ ...currentExercise, weight: Math.max(0, parseInt(e.target.value) || 0) })
+          }
+          className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
+        />
+        <input
+          type="number"
+          min={0}
+          placeholder="Duration (min)"
+          value={currentExercise.duration || ''}
+          onChange={(e) =>
+            setCurrentExercise({ ...currentExercise, duration: Math.max(0, parseInt(e.target.value) || 0) })
+          }
+          className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
+        />
+      </div>
+    </div>
+    <div className="flex space-x-2 mt-4">
+      <button
+        onClick={handleAddExercise}
+        className="relative overflow-hidden group flex-1 py-2 rounded-lg font-semibold text-white transform active:scale-95 transition-all duration-300 shadow-lg"
+      >
+        <span className="absolute inset-0 bg-[#008080]/80 rounded-lg opacity-80 group-hover:opacity-100 transition-opacity duration-300"></span>
+        <span className="relative z-10">Save Exercise</span>
+      </button>
+      <button
+        onClick={() => setIsAddingExercise(false)}
+        className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400 transition"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+) : (
+  <button
+    onClick={() => setIsAddingExercise(true)}
+    className="w-full flex items-center justify-center bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400 transition border border-gray-400"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus mr-2"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add Exercise
+  </button>
+)}
+
+                            
                             <button
                                 onClick={handleSaveWorkout}
                                 disabled={!newWorkoutDate || newExercises.length === 0}
