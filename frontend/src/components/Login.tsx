@@ -1,9 +1,7 @@
-// src/components/Login.tsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock } from "lucide-react";
 import fitnessImage from "@/components/images/fitness1.jpg";
-
 
 const quotes = [
   "Push yourself because no one else is going to do it for you!",
@@ -33,7 +31,8 @@ const Login: React.FC = () => {
       const data = await res.json();
 
       if (res.ok) {
-        alert("Login successful!");
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
         navigate("/profile"); // redirect after login
       } else {
         setError(data.message || "Login failed");
@@ -45,7 +44,6 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Image / Motivational */}
       <div
         className="hidden md:flex w-2/5 bg-cover bg-center rounded-l-3xl"
         style={{ backgroundImage: `url(${fitnessImage})` }}
@@ -57,18 +55,15 @@ const Login: React.FC = () => {
         </div>
       </div>
 
-      {/* Right Form */}
       <div className="w-full md:w-2/3 flex items-center justify-center p-8 bg-gradient-to-b from-green-100 to-white">
         <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 transform transition-transform duration-500 hover:scale-[1.01]">
           <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">Welcome Back!</h2>
 
-          {/* Motivational Quote */}
           <p className="text-center text-green-800 font-semibold mb-6 italic">
             "{randomQuote}"
           </p>
 
           <form onSubmit={handleLogin} className="space-y-4">
-            {/* Email Input */}
             <div className="flex items-center border rounded-xl p-2 bg-green-50 focus-within:ring-2 focus-within:ring-green-400 transform transition-transform duration-200 focus-within:scale-105">
               <Mail className="h-5 w-5 text-gray-400 mr-2" />
               <input
@@ -81,7 +76,6 @@ const Login: React.FC = () => {
               />
             </div>
 
-            {/* Password Input */}
             <div className="flex items-center border rounded-xl p-2 bg-green-50 focus-within:ring-2 focus-within:ring-green-400 transform transition-transform duration-200 focus-within:scale-105">
               <Lock className="h-5 w-5 text-gray-400 mr-2" />
               <input
@@ -117,6 +111,7 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+
 
 
 
