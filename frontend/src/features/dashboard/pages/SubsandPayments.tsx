@@ -10,6 +10,7 @@ import {
     BadgeDollarSignIcon,
     Apple,
 } from "lucide-react";
+import Navbar from "@/components/Navbar.tsx"
 
 export default function PremiumSubscription() {
     const [paymentMethod, setPaymentMethod] = useState("card");
