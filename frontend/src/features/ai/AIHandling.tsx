@@ -1,6 +1,6 @@
 import React from "react";
 import type { Workout } from "./AI";
-import { DumbbellIcon } from "./AI";
+import { DumbbellIcon } from "lucide-react";
 
 interface AIHandlingProps {
   createForm: {
@@ -14,13 +14,18 @@ interface AIHandlingProps {
   setCurrentGeneratedWorkout: React.Dispatch<React.SetStateAction<Workout | null>>;
 }
 
-const AIHandling: React.FC<AIHandlingProps> = ({ createForm, loading, setLoading, setCurrentGeneratedWorkout }) => {
+const AIHandling: React.FC<AIHandlingProps> = ({
+  createForm,
+  loading,
+  setLoading,
+  setCurrentGeneratedWorkout,
+}) => {
   const generateWorkout = async () => {
     setLoading(true);
     setCurrentGeneratedWorkout(null);
 
     const apiKey = import.meta.env.VITE_GROQ_API;
-    const prompt = `Create a ${createForm.duration}-minute ${createForm.focus} workout plan at ${createForm.intensity} intensity, using ${createForm.equipment}. Provide a detailed, easy-to-read plan. Format the response with a title, distinct sections for warm-up, main circuit, and cool-down, using bold , colors and lists bullets.`;
+    const prompt = `Create a ${createForm.duration}-minute ${createForm.focus} workout plan at ${createForm.intensity} intensity, using ${createForm.equipment}. Provide a detailed, easy-to-read plan. Format the response with a title, distinct sections for warm-up, main circuit, and cool-down, using bold, colors and list bullets.`;
 
     let generatedPlan = "An error occurred. Please try again later.";
 
@@ -43,11 +48,11 @@ const AIHandling: React.FC<AIHandlingProps> = ({ createForm, loading, setLoading
       const result = await res.json();
       const text = result?.choices?.[0]?.message?.content;
       if (text) {
-        // Remove excessive line breaks
+        // Cleanup extra newlines
         generatedPlan = text.replace(/\n{2,}/g, "\n\n");
       }
     } catch (error) {
-      console.error("API call failed:", error);
+      console.error("Groq API call failed:", error);
     } finally {
       const newWorkout: Workout = {
         id: crypto.randomUUID(),
@@ -58,6 +63,7 @@ const AIHandling: React.FC<AIHandlingProps> = ({ createForm, loading, setLoading
         equipment: createForm.equipment,
         plan: generatedPlan,
       };
+
       setCurrentGeneratedWorkout(newWorkout);
       setLoading(false);
     }

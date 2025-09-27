@@ -1,10 +1,11 @@
 import Navbar from "@/components/Navbar";
-import React, { useState, type ChangeEvent } from "react";
+import React, { useState, useEffect, type ChangeEvent } from "react";
 import AIHandling from "./AIHandling";
 
 // Workout interface
 export interface Workout {
-  id: string;
+  _id?: string; // MongoDB ID
+  id?: string;  // Temporary ID for client preview
   title: string;
   duration: string;
   focus: string;
@@ -19,7 +20,6 @@ export const BoltIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
   </svg>
 );
-
 export const DumbbellIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
     <path d="m6.5 6.5 11 11" />
@@ -31,7 +31,6 @@ export const DumbbellIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <path d="M14 21l7-7" />
   </svg>
 );
-
 export const ClockIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
     <circle cx="12" cy="12" r="10" />
@@ -60,13 +59,11 @@ const WorkoutCard = ({ workout, onClick }: { workout: Workout, onClick: () => vo
   </div>
 );
 
-// WorkoutDetailModal component with colored exercise cards
+// WorkoutDetailModal component
 const WorkoutDetailModal = ({ workout, onClose }: { workout: Workout | null, onClose: () => void }) => {
   if (!workout) return null;
 
-  // Split plan into sections
   const renderPlan = (plan: string) => {
-    // Highlight headers and key numbers
     const lines = plan.split("\n").filter(Boolean);
 
     return lines.map((line, index) => {
@@ -88,9 +85,7 @@ const WorkoutDetailModal = ({ workout, onClose }: { workout: Workout | null, onC
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-3xl font-light">&times;</button>
         <h2 className="text-3xl font-bold text-gray-900 mb-2">{workout.title}</h2>
         <p className="text-gray-500 mb-6">{workout.duration} min | {workout.focus} | {workout.intensity} | {workout.equipment}</p>
-        <div className="flex flex-col gap-2">
-          {renderPlan(workout.plan)}
-        </div>
+        <div className="flex flex-col gap-2">{renderPlan(workout.plan)}</div>
       </div>
     </div>
   );
@@ -99,10 +94,9 @@ const WorkoutDetailModal = ({ workout, onClose }: { workout: Workout | null, onC
 const workoutFocusOptions: string[] = ["Legs", "Upper Body", "Full Body", "Cardio"];
 const equipmentOptions: string[] = ["None", "Dumbbells", "Resistance Bands", "Full Gym"];
 const intensityOptions: string[] = ["Low", "Medium", "High"];
-let mockDatabase: Workout[] = [];
 
 const AII: React.FC = () => {
-  const [workoutCards, setWorkoutCards] = useState<Workout[]>(mockDatabase);
+  const [workoutCards, setWorkoutCards] = useState<Workout[]>([]);
   const [currentGeneratedWorkout, setCurrentGeneratedWorkout] = useState<Workout | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
@@ -119,12 +113,46 @@ const AII: React.FC = () => {
     setCreateForm(prev => ({ ...prev, [name]: value }));
   };
 
-  const saveWorkout = () => {
-    if (!currentGeneratedWorkout) return;
-    mockDatabase = [currentGeneratedWorkout, ...mockDatabase];
-    setWorkoutCards(mockDatabase);
+  useEffect(() => {
+    const fetchWorkouts = async () => {
+      try {
+        const res = await fetch("http://localhost:4000/api/ai");
+        const data = await res.json();
+        setWorkoutCards(data);
+      } catch (error) {
+        console.error("Failed to fetch workouts:", error);
+      }
+    };
+    fetchWorkouts();
+  }, []);
+
+  // Save the current generated workout to backend
+const saveWorkout = async () => {
+  if (!currentGeneratedWorkout) return;
+
+  try {
+    // POST to your backend endpoint
+    const res = await fetch("http://localhost:4000/api/ai/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(currentGeneratedWorkout), // send the full workout object including the plan
+    });
+
+    if (!res.ok) throw new Error("Failed to save workout");
+
+    const savedWorkout = await res.json();
+
+    // Add the saved workout to your local state so it shows in the UI
+    setWorkoutCards([savedWorkout, ...workoutCards]);
+
+    // Clear the preview
     setCurrentGeneratedWorkout(null);
-  };
+
+  } catch (error) {
+    console.error("Error saving workout:", error);
+  }
+};
+
 
   return (
     <>
@@ -133,6 +161,8 @@ const AII: React.FC = () => {
         <div className="flex flex-col w-full min-h-screen font-sans text-gray-900 relative mt-4 md:mt-2">
           <main className="flex-1 flex flex-col space-y-8 pb-20 md:pb-0">
             <div className="w-full max-w-4xl mx-auto rounded-3xl p-6 md:p-12 space-y-8 bg-white shadow-2xl">
+
+              {/* header */}
               <header className="text-center">
                 <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900">AI Workout Plans</h2>
                 <p className="text-gray-600 mt-2 max-w-prose mx-auto">
@@ -140,130 +170,80 @@ const AII: React.FC = () => {
                 </p>
               </header>
 
-              {/* Form */}
+              {/* inputs */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 <div className="flex flex-col">
                   <label className="block text-gray-600 font-medium mb-2 flex items-center gap-2">
                     <ClockIcon className="h-4 w-4 text-gray-500" />Duration (minutes)
                   </label>
-                  <input
-                    type="number"
-                    name="duration"
-                    value={createForm.duration}
-                    onChange={handleInputChange}
+                  <input type="number" name="duration" value={createForm.duration} onChange={handleInputChange}
                     className="w-full p-3 rounded-xl border border-gray-300 bg-gray-100 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    min="1"
-                  />
+                    min="1" />
                 </div>
                 <div className="flex flex-col">
                   <label className="block text-gray-600 font-medium mb-2 flex items-center gap-2">
                     <DumbbellIcon className="h-4 w-4 text-gray-500" />Equipment
                   </label>
-                  <select
-                    name="equipment"
-                    value={createForm.equipment}
-                    onChange={handleInputChange}
-                    className="w-full p-3 rounded-xl border border-gray-300 bg-gray-100 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  >
-                    {equipmentOptions.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
+                  <select name="equipment" value={createForm.equipment} onChange={handleInputChange}
+                    className="w-full p-3 rounded-xl border border-gray-300 bg-gray-100 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    {equipmentOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                   </select>
                 </div>
                 <div className="flex flex-col">
                   <label className="block text-gray-600 font-medium mb-2 flex items-center gap-2">
                     <BoltIcon className="h-4 w-4 text-gray-500" />Intensity
                   </label>
-                  <select
-                    name="intensity"
-                    value={createForm.intensity}
-                    onChange={handleInputChange}
-                    className="w-full p-3 rounded-xl border border-gray-300 bg-gray-100 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  >
-                    {intensityOptions.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
+                  <select name="intensity" value={createForm.intensity} onChange={handleInputChange}
+                    className="w-full p-3 rounded-xl border border-gray-300 bg-gray-100 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    {intensityOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                   </select>
                 </div>
               </div>
 
-              {/* Focus Buttons */}
+              {/* focus buttons */}
               <div className="flex flex-wrap gap-4 justify-center">
-                {workoutFocusOptions.map((focus) => (
-                  <button
-                    key={focus}
-                    onClick={() => setCreateForm(prev => ({ ...prev, focus }))}
+                {workoutFocusOptions.map(focus => (
+                  <button key={focus} onClick={() => setCreateForm(prev => ({ ...prev, focus }))}
                     className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-md ${
                       createForm.focus === focus
                         ? "bg-blue-600 text-white shadow-xl"
                         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
-                  >
-                    <span>{focus}</span>
+                    }`}>
+                    {focus}
                   </button>
                 ))}
               </div>
 
-              {/* AI Generate Button */}
-              <AIHandling
-                              createForm={createForm}
-                              setLoading={setLoading}
-                              setCurrentGeneratedWorkout={setCurrentGeneratedWorkout} 
-                              loading={loading}            />
+              {/* AI generate */}
+              <AIHandling createForm={createForm} setLoading={setLoading} setCurrentGeneratedWorkout={setCurrentGeneratedWorkout} loading={loading} />
 
-              {/* Generated Workout Preview */}
+              {/* generated workout preview */}
               {currentGeneratedWorkout && (
                 <div>
                   <h3 className="text-2xl font-bold text-gray-800 pt-8 border-t border-gray-200">Generated Workout Preview</h3>
-                  <div className="flex flex-col gap-4">
-                    <WorkoutCard
-                      key={currentGeneratedWorkout.id}
-                      workout={currentGeneratedWorkout}
-                      onClick={() => setSelectedWorkout(currentGeneratedWorkout)}
-                    />
-                    <button
-                      onClick={saveWorkout}
-                      disabled={loading}
-                      className={`w-full flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold text-white transition-all duration-300 transform hover:scale-[1.01] ${
-                        loading
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 shadow-md"
-                      }`}
-                    >
-                      <DumbbellIcon className="h-5 w-5" />
-                      <span>Save Workout</span>
-                    </button>
-                  </div>
+                  <WorkoutCard workout={currentGeneratedWorkout} onClick={() => setSelectedWorkout(currentGeneratedWorkout)} />
+                  <button onClick={saveWorkout}
+                    className="mt-4 w-full flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 shadow-md">
+                    <DumbbellIcon className="h-5 w-5" />
+                    Save Workout
+                  </button>
                 </div>
               )}
 
-              {/* Saved Workouts */}
+              {/* saved workouts */}
               {workoutCards.length > 0 && (
                 <>
                   <h3 className="text-2xl font-bold text-gray-800 pt-8 border-t border-gray-200">Your Saved AI Workouts</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                    {workoutCards.map((workout) => (
-                      <WorkoutCard
-                        key={workout.id}
-                        workout={workout}
-                        onClick={() => setSelectedWorkout(workout)}
-                      />
-                    ))}
+                    {workoutCards.map(workout => <WorkoutCard key={workout._id} workout={workout} onClick={() => setSelectedWorkout(workout)} />)}
                   </div>
                 </>
               )}
 
-                            {/* Empty state */}
-              {workoutCards.length === 0 && !loading && !currentGeneratedWorkout && (
-                <div className="col-span-full text-center py-20 text-gray-400">
-                  <BoltIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-xl font-medium">Your workouts will appear here. Click "Generate Workout" to get started!</p>
-                </div>
-              )}
             </div>
           </main>
 
-          {/* Modal */}
+          {/* modal */}
           <WorkoutDetailModal workout={selectedWorkout} onClose={() => setSelectedWorkout(null)} />
         </div>
       </div>
@@ -272,5 +252,3 @@ const AII: React.FC = () => {
 };
 
 export default AII;
-
-             
