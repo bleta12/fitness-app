@@ -32,9 +32,14 @@ const Signup: React.FC = () => {
       const data = await res.json();
 
       if (res.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("username", data.username);
+        localStorage.setItem("email", data.email);
         setSuccess("Account created successfully! 🎉 Redirecting...");
         setTimeout(() => navigate("/login"), 1500);
-      } else {
+      }
+
+      else {
         setError(data.error || "Signup failed");
       }
     } catch (err) {

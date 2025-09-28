@@ -22,11 +22,9 @@ const Login: React.FC = () => {
       const data = await res.json();
 
       if (res.ok) {
-        // ✅ Save token + username
         localStorage.setItem("token", data.token);
         localStorage.setItem("username", data.username);
-
-        // Redirect to home
+        localStorage.setItem("email", data.email);
         navigate("/home");
       } else {
         alert(data.error || data.message);

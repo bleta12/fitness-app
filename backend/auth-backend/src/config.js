@@ -2,12 +2,11 @@ import mysql from "mysql2";
 
 const db = mysql.createConnection({
     host: "localhost",
-    user: "root",       // your MySQL username
-    password: "Teosi13579tek",       // your MySQL password
-    database: "auth_demo" // your database name
+    user: "root",
+    password: "Teosi13579tek",
+    database: "auth_demo"
 });
 
-// connect to DB
 db.connect((err) => {
     if (err) {
         console.error("❌ Database connection failed: " + err.stack);
@@ -16,4 +15,4 @@ db.connect((err) => {
     console.log("✅ Connected to MySQL database.");
 });
 
-export default db;  // <-- make sure you have this line
+export default db;
