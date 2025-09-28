@@ -1,39 +1,29 @@
-import http from 'http';
-import { EventEmitter } from 'events';
+// src/server.ts
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import aiRouter from "./ai/ai.resource";
 
-interface Workout {
-    name: string;
-    duration: number;
-}
+const app = express();
 
-const myEmitter = new EventEmitter();
-const workouts: Workout[] = [];
+// Middleware
+app.use(express.json());
 
-// Event: new workout added
-myEmitter.on('workoutAdded', (workout: Workout) => {
-    workouts.push(workout);
-    console.log(`🏋️‍♂️ New workout added: ${workout.name}, Duration: ${workout.duration} min`);
-});
+// Enable CORS for frontend (adjust origin if needed)
+app.use(cors({
+  origin: "http://localhost:5173", // your frontend URL
+}));
 
-const server = http.createServer((req, res) => {
-    if (req.method === 'POST' && req.url === '/add-workout') {
-        let body = '';
-        req.on('data', chunk => { body += chunk; });
-        req.on('end', () => {
-            const workout: Workout = JSON.parse(body);
-            myEmitter.emit('workoutAdded', workout); // trigger event
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ message: 'Workout added!' }));
-        });
-    } else if (req.method === 'GET' && req.url === '/workouts') {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(workouts));
-    } else {
-        res.writeHead(404);
-        res.end('Not Found');
-    }
-});
+// Routes
+app.use("/api/ai", aiRouter);
 
-server.listen(3000, () => {
-    console.log('Server running on http://localhost:3000');
-});
+// Connect to MongoDB Atlas
+mongoose.connect(
+  "mongodb+srv://bletemorina_db_fitnes:SyljC456mAsdm3vV@cluster0.u03sheh.mongodb.net/fitness-app?retryWrites=true&w=majority"
+)
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => console.error("MongoDB connection error:", err));
+
+// Start server
+const PORT = 4000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
