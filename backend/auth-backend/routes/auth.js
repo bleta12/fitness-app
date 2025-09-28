@@ -5,7 +5,6 @@ import db from "../src/config.js";
 
 const router = express.Router();
 
-// ✅ SIGNUP
 router.post("/signup", async (req, res) => {
     const { username, email, password } = req.body;
 
@@ -31,7 +30,6 @@ router.post("/signup", async (req, res) => {
     }
 });
 
-// ✅ LOGIN
 router.post("/login", (req, res) => {
     const { email, password } = req.body;
 
@@ -48,8 +46,10 @@ router.post("/login", (req, res) => {
             expiresIn: "1h",
         });
 
-        res.json({ message: "Login successful", token });
+        // ✅ Send username too
+        res.json({ message: "Login successful", token, username: user.username });
     });
 });
+
 
 export default router;

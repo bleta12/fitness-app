@@ -7,6 +7,7 @@ import fitnessImage from "@/components/images/fitness1.jpg";
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -21,10 +22,12 @@ const Login: React.FC = () => {
       const data = await res.json();
 
       if (res.ok) {
-        // ✅ Save token for future requests
+        // ✅ Save token + username
         localStorage.setItem("token", data.token);
-        alert("Login successful!");
-        console.log("JWT:", data.token);
+        localStorage.setItem("username", data.username);
+
+        // Redirect to home
+        navigate("/home");
       } else {
         alert(data.error || data.message);
       }

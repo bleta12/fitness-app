@@ -4,7 +4,7 @@ import { User, Mail, Lock } from "lucide-react";
 import fitnessImage from "@/components/images/fitness1.jpg";
 
 const Signup: React.FC = () => {
-  const [username, setUsername] = useState(""); // 🔥 use "username" instead of "name"
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -26,14 +26,14 @@ const Signup: React.FC = () => {
       const res = await fetch("http://localhost:5000/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password }), // ✅ match backend
+        body: JSON.stringify({ username, email, password }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
         setSuccess("Account created successfully! 🎉 Redirecting...");
-        setTimeout(() => navigate("/login"), 1500); // redirect after 1.5s
+        setTimeout(() => navigate("/login"), 1500);
       } else {
         setError(data.error || "Signup failed");
       }

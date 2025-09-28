@@ -1,10 +1,18 @@
-
+import { useEffect, useState } from "react";
 import { User, Sparkles, Flame, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar.tsx";
 import { Link } from "react-router-dom";
 
 const Home = () => {
 
+    const [username, setUsername] = useState("");
+
+    useEffect(() => {
+        const storedUsername = localStorage.getItem("username");
+        if (storedUsername) {
+            setUsername(storedUsername);
+        }
+    }, []);
 
     const progressData = [
         { title: "Calories", value: 0, icon: Flame, color: "text-orange-500" },
@@ -27,7 +35,7 @@ const Home = () => {
                 <header className="flex items-center justify-between">
                     <div className="flex flex-col">
                         <h2 className="text-3xl font-bold text-gray-900 flex items-center">
-                            {getGreeting()}, rreze! <span className="ml-2 text-3xl">👋</span>
+                            {getGreeting()}, {username || "Guest"}!{" "}
                         </h2>
                         <p className="text-gray-500 mt-1">
                             Ready to crush your fitness goals?
