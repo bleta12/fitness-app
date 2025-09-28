@@ -42,4 +42,9 @@ export class AIService {
   async deleteWorkout(id: string): Promise<void> {
     return this.repo.deleteWorkout(id);
   }
+
+  async saveWorkout(workoutData: Partial<IWorkout>): Promise<IWorkout> {
+      // Simply pass the data to the repository to create/save it
+      return this.repo.createWorkout(workoutData);
+    }
 }

@@ -25,7 +25,7 @@ const AIHandling: React.FC<AIHandlingProps> = ({
     setCurrentGeneratedWorkout(null);
 
     const apiKey = import.meta.env.VITE_GROQ_API;
-    const prompt = `Create a ${createForm.duration}-minute ${createForm.focus} workout plan at ${createForm.intensity} intensity, using ${createForm.equipment}. Provide a detailed, easy-to-read plan. Format the response with a title, distinct sections for warm-up, main circuit, and cool-down, using bold, colors and list bullets.`;
+    const prompt = `Create a ${createForm.duration}-minute ${createForm.focus} workout plan at ${createForm.intensity} intensity, using ${createForm.equipment}. Provide a detailed, easy-to-read plan. Format the response with a title, distinct sections for warm-up, main circuit, and cool-down, using bold, colors and list bullets, and npt html tags.`;
 
     let generatedPlan = "An error occurred. Please try again later.";
 

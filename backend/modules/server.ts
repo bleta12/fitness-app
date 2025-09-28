@@ -11,7 +11,7 @@ app.use(express.json());
 
 // Enable CORS for frontend (adjust origin if needed)
 app.use(cors({
-  origin: "http://localhost:3000", // your frontend URL
+  origin: "http://localhost:5173", // your frontend URL
 }));
 
 // Routes

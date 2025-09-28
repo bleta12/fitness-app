@@ -132,7 +132,7 @@ const saveWorkout = async () => {
 
   try {
     // POST to your backend endpoint
-    const res = await fetch("http://localhost:4000/api/ai/generate", {
+    const res = await fetch("http://localhost:4000/api/ai/save", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(currentGeneratedWorkout), // send the full workout object including the plan
