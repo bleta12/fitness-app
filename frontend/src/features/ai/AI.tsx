@@ -116,7 +116,7 @@ const AII: React.FC = () => {
   useEffect(() => {
     const fetchWorkouts = async () => {
       try {
-        const res = await fetch("http://localhost:4000/api/ai");
+        const res = await fetch("http://localhost:5000/api/ai");
         const data = await res.json();
         setWorkoutCards(data);
       } catch (error) {
@@ -132,7 +132,7 @@ const saveWorkout = async () => {
 
   try {
     // POST to your backend endpoint
-    const res = await fetch("http://localhost:4000/api/ai/save", {
+    const res = await fetch("http://localhost:5000/api/ai/save", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(currentGeneratedWorkout), // send the full workout object including the plan

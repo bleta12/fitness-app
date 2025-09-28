@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node-dev --respawn --transpile-only modules/server.ts"
+    "dev": "ts-node-dev --respawn --transpile-only auth-backend/src/server.js"
   },
   "private": true,
   "dependencies": {

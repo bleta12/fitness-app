@@ -1,12 +1,12 @@
-// src/ai/ai.resource.ts
-import { Router, Request, Response } from "express";
-import { AIService } from "./ai.service";
+// src/ai/ai.resource.js
+import { Router } from "express";
+import AIService from "./ai.service.js"; // make sure this is also an ES module
 
 const router = Router();
 const aiService = new AIService();
 
 // Generate a new AI workout
-router.post("/generate", async (req: Request, res: Response) => {
+router.post("/generate", async (req, res) => {
   try {
     const workout = await aiService.generateWorkout(req.body);
     res.status(201).json(workout);
@@ -17,7 +17,7 @@ router.post("/generate", async (req: Request, res: Response) => {
 });
 
 // List all workouts
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", async (req, res) => {
   try {
     const workouts = await aiService.listWorkouts();
     res.json(workouts);
@@ -28,7 +28,7 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 // Get workout by ID
-router.get("/:id", async (req: Request, res: Response) => {
+router.get("/:id", async (req, res) => {
   try {
     const workout = await aiService.getWorkout(req.params.id);
     if (!workout) return res.status(404).json({ error: "Workout not found" });
@@ -40,7 +40,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 // Delete workout by ID
-router.delete("/:id", async (req: Request, res: Response) => {
+router.delete("/:id", async (req, res) => {
   try {
     await aiService.deleteWorkout(req.params.id);
     res.status(204).send();
@@ -51,9 +51,9 @@ router.delete("/:id", async (req: Request, res: Response) => {
 });
 
 // Save a workout manually
-router.post("/save", async (req: Request, res: Response) => {
+router.post("/save", async (req, res) => {
   try {
-    const workout = await aiService.saveWorkout(req.body); // call new saveWorkout method
+    const workout = await aiService.saveWorkout(req.body);
     res.status(201).json(workout);
   } catch (error) {
     console.error(error);
@@ -61,6 +61,4 @@ router.post("/save", async (req: Request, res: Response) => {
   }
 });
 
-
-
-export default router;
+export default router; // ✅ ES module default export
