@@ -4,7 +4,6 @@ import { Link, useLocation } from "react-router-dom";
 import {
     Home,
     Dumbbell,
-    TrendingUp,
     User,
     Zap,
     Sparkles,
@@ -24,7 +23,6 @@ export interface NavLink {
 const navLinks: NavLink[] = [
     { name: "Home", icon: Home, id: "Home", path: "/" },
     { name: "AI Plans", icon: Sparkles, id: "AI", path: "/ai" },
-    { name: "Leaderboard", icon: TrendingUp, id: "Leaderboard", path: "/leaderboard" },
     { name: "WorkoutTracking", icon: Dumbbell, id: "WorkoutTracking", path: "/WorkoutTracking" },
     { name: "Nutrition", icon: Carrot, id: "Nutrition", path: "/nutrition" },
     { name: "Social", icon: MessageCircle, id: "Social", path: "/social" },

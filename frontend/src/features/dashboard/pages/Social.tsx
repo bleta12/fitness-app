@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Cookies from "js-cookie";
 import ChatBox from "./ChatBox";
 import ChatHeader from "./ChatHeader";
 import Navbar from "@/components/Navbar";
@@ -8,7 +9,15 @@ export const socket = io("http://localhost:4000");
 export const chatState: any = {};
 
 function Social() {
-  const [userId] = useState(() => crypto.randomUUID?.() || `user_${Date.now()}`);
+  const [userId] = useState(() => {
+    // Try to get userId from cookie first
+    const existing = Cookies.get("userId");
+    if (existing) return existing;
+
+    const newId = crypto.randomUUID?.() || `user_${Date.now()}`;
+    Cookies.set("userId", newId, { expires: 7 }); // cookie expires in 7 days
+    return newId;
+  });
 
   const contacts = [
     { id: "1", name: "Alex Turner", status: "Online", avatarColor: "bg-yellow-200" },
@@ -34,25 +43,29 @@ function Social() {
     userId,
   });
 
+  // Connect to socket with persistent userId
   useEffect(() => {
     socket.emit("register", userId);
 
-    //Listen for messages
     socket.on("receive_message", (msg) => {
       setChatMap((prev) => {
         const chat = prev[msg.senderId] || [];
-        return {
-          ...prev,
-          [msg.senderId]: [...chat, msg],
-        };
+        return { ...prev, [msg.senderId]: [...chat, msg] };
       });
     });
 
-    // Cleanup on unmount
+    socket.on("typing", (senderId: string) => {
+      if (activeContact && senderId === activeContact.id) {
+        setTyping(true);
+        setTimeout(() => setTyping(false), 1500);
+      }
+    });
+
     return () => {
       socket.off("receive_message");
+      socket.off("typing");
     };
-  }, [userId]);
+  }, [userId, activeContact]);
 
   return (
     <div className="flex h-screen">
