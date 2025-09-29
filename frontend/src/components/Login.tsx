@@ -1,30 +1,19 @@
-// src/components/Login.tsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock } from "lucide-react";
 import fitnessImage from "@/components/images/fitness1.jpg";
 
 
-const quotes = [
-  "Push yourself because no one else is going to do it for you!",
-  "The body achieves what the mind believes.",
-  "Strive for progress, not perfection.",
-];
-
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/login", {
+      const res = await fetch("http://localhost:5000/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -33,19 +22,21 @@ const Login: React.FC = () => {
       const data = await res.json();
 
       if (res.ok) {
-        alert("Login successful!");
-        navigate("/profile"); // redirect after login
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("username", data.username);
+        localStorage.setItem("email", data.email);
+        navigate("/home");
       } else {
-        setError(data.message || "Login failed");
+        alert(data.error || data.message);
       }
-    } catch (err) {
-      setError("Server error");
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Server error. Please try again.");
     }
   };
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Image / Motivational */}
       <div
         className="hidden md:flex w-2/5 bg-cover bg-center rounded-l-3xl"
         style={{ backgroundImage: `url(${fitnessImage})` }}
@@ -57,18 +48,11 @@ const Login: React.FC = () => {
         </div>
       </div>
 
-      {/* Right Form */}
       <div className="w-full md:w-2/3 flex items-center justify-center p-8 bg-gradient-to-b from-green-100 to-white">
         <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 transform transition-transform duration-500 hover:scale-[1.01]">
           <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">Welcome Back!</h2>
 
-          {/* Motivational Quote */}
-          <p className="text-center text-green-800 font-semibold mb-6 italic">
-            "{randomQuote}"
-          </p>
-
           <form onSubmit={handleLogin} className="space-y-4">
-            {/* Email Input */}
             <div className="flex items-center border rounded-xl p-2 bg-green-50 focus-within:ring-2 focus-within:ring-green-400 transform transition-transform duration-200 focus-within:scale-105">
               <Mail className="h-5 w-5 text-gray-400 mr-2" />
               <input
@@ -81,7 +65,6 @@ const Login: React.FC = () => {
               />
             </div>
 
-            {/* Password Input */}
             <div className="flex items-center border rounded-xl p-2 bg-green-50 focus-within:ring-2 focus-within:ring-green-400 transform transition-transform duration-200 focus-within:scale-105">
               <Lock className="h-5 w-5 text-gray-400 mr-2" />
               <input
@@ -94,7 +77,7 @@ const Login: React.FC = () => {
               />
             </div>
 
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+
 
             <button
               type="submit"
@@ -117,6 +100,7 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+
 
 
 

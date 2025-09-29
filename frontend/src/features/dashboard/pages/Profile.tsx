@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect  } from "react";
 import Navbar from "@/components/Navbar";
 
 type ProfileForm = {
@@ -15,16 +15,29 @@ type ProfileForm = {
 
 export default function Profile() {
   const [formData, setFormData] = useState<ProfileForm>({
-    name: "rreze morina",
-    email: "rreze@example.com",
-    age: 25,
-    currentWeight: 150,
-    heightFeet: 8,
-    heightInches: 15,
-    targetWeight: 145,
+    name: "",
+    email: "",
+    age: "",
+    currentWeight: "",
+    heightFeet: "",
+    heightInches: "",
+    targetWeight: "",
     fitnessGoal: "Weight Loss",
     activityLevel: "Beginner",
   });
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  useEffect(() => {
+    const storedUsername = localStorage.getItem("username");
+    const storedEmail = localStorage.getItem("email");
+    if (storedUsername) {
+      setUsername(storedUsername);
+    }
+    if(storedEmail){
+      setEmail(storedEmail);
+    }
+  }, []);
+
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -60,14 +73,14 @@ export default function Profile() {
         <div className="mx-auto w-full max-w-full sm:max-w-3xl md:max-w-5xl lg:max-w-6xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           {/* Header: avatar + name + email + member badge */}
           <div className="mb-6 flex flex-col sm:flex-row items-center sm:items-start rounded-xl bg-slate-50 p-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-emerald-600 text-2xl font-semibold text-white">
-              {formData.name?.[0]?.toUpperCase() || "U"}
+            <div className="flex h-max w-max  px-3 items-center justify-center rounded-xl bg-emerald-600 text-2xl font-semibold text-white">
+              {username ? username : "Guest"}
             </div>
             <div className="mt-3 sm:mt-0 sm:ml-3 text-center sm:text-left leading-snug">
               <div className="text-base font-semibold text-slate-900">
                 {formData.name}
               </div>
-              <div className="text-sm text-slate-500">{formData.email}</div>
+              <div className="text-sm text-slate-500">{email ? email : "example.com"}</div>
               <div className="text-xs font-medium text-emerald-600">
                 FitAI Member
               </div>
