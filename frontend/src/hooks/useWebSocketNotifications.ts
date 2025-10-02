@@ -1,43 +1,24 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+import { io } from "socket.io-client";
 
-const useWebSocketNotifications = (showToast: (msg: string) => void) => {
-    const socketRef = useRef<WebSocket | null>(null);
-
+const useWebSocketNotifications = (onMessage: (msg: string) => void) => {
     useEffect(() => {
-        const socket = new WebSocket("ws://localhost:8080/ws");
-        socketRef.current = socket;
+        // lidhu me serverin e notifications
+        const socket = io("http://localhost:5001", {
+            transports: ["websocket"],
+            reconnection: true,
+        });
 
-        socket.onopen = () => {
-            console.log("✅ Connected to WebSocket");
-        };
-
-        socket.onmessage = (event) => {
-            console.log("📩 Message:", event.data);
-            showToast(event.data); // 👉 shfaq toast në frontend
-        };
-
-        socket.onerror = (err) => {
-            console.error("❌ WebSocket error:", err);
-        };
-
-        socket.onclose = () => {
-            console.log("⚠️ WebSocket closed");
-        };
+        socket.on("notification", (msg) => {
+            console.log("📩 Notification received:", msg);
+            onMessage(msg);
+        });
 
         return () => {
-            socket.close();
+            socket.off("notification");
+            socket.disconnect();
         };
     }, []);
-
-    const sendMessage = (msg: string) => {
-        if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-            socketRef.current.send(msg);
-        } else {
-            console.warn("⚠️ WebSocket not connected");
-        }
-    };
-
-    return { sendMessage };
 };
 
 export default useWebSocketNotifications;

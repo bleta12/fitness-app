@@ -3,6 +3,7 @@ import axios from "axios";
 import Navbar from "@/components/Navbar";
 import useWebSocketNotifications from "@/hooks/useWebSocketNotifications";
 
+
 type Meal = {
     id?: number;
     name: string;
@@ -22,9 +23,15 @@ type Toast = {
     message: string;
 };
 
+type HydrationDay = {
+    date: string;
+    waterCups: number;
+};
+
 const NutritionHydration: React.FC = () => {
     // --- State ---
     const [waterCups, setWaterCups] = useState(0);
+    const [hydrationWeek, setHydrationWeek] = useState<HydrationDay[]>([]);
     const totalWaterCups = 8;
 
     const [meals, setMeals] = useState<Meal[]>([]);
@@ -42,7 +49,6 @@ const NutritionHydration: React.FC = () => {
 
     // Toasts
     const [toasts, setToasts] = useState<Toast[]>([]);
-
     const showToast = (message: string) => {
         const id = Date.now();
         setToasts((prev) => [...prev, { id, message }]);
@@ -51,7 +57,7 @@ const NutritionHydration: React.FC = () => {
         }, 3000);
     };
 
-    // --- WebSocket Notifications (nëse ke backend WS, do shfaqë toast kur vjen mesazhi) ---
+    // --- WebSocket Notifications (opsionale) ---
     useWebSocketNotifications(showToast);
 
     // --- Load Data from Backend ---
@@ -66,20 +72,50 @@ const NutritionHydration: React.FC = () => {
     const fetchMeals = async () => {
         try {
             const res = await axios.get(
-                `http://localhost:8080/nutrition/summary?mode=${viewMode}`
+                `http://localhost:5000/nutrition/summary?mode=${viewMode}`
             );
-            setMeals(res.data);
+
+            const normalized = res.data.map((meal: any) => ({
+                ...meal,
+                date: new Date(meal.date).toISOString().split("T")[0],
+                calories: Number(meal.calories),
+                carbs: Number(meal.carbs),
+                protein: Number(meal.protein),
+                fat: Number(meal.fat),
+            }));
+
+            setMeals(normalized);
         } catch (err) {
             console.error("Error fetching meals:", err);
+            showToast("❌ Error fetching meals");
         }
     };
 
     const fetchHydration = async () => {
         try {
-            const res = await axios.get("http://localhost:8080/hydration/summary");
-            setWaterCups(res.data.waterCups);
+            const res = await axios.get(
+                `http://localhost:5000/hydration/summary?mode=${viewMode}`
+            );
+
+            if (viewMode === "weekly") {
+                const normalized = res.data.map((h: any) => ({
+                    date: new Date(h.date).toISOString().split("T")[0],
+                    waterCups: Number(h.waterCups) || 0,
+                }));
+                setHydrationWeek(normalized);
+            } else {
+                // daily
+                if (Array.isArray(res.data) && res.data.length > 0) {
+                    setWaterCups(Number(res.data[0].waterCups) || 0);
+                } else if (res.data && res.data.waterCups !== undefined) {
+                    setWaterCups(Number(res.data.waterCups) || 0);
+                } else {
+                    setWaterCups(0);
+                }
+            }
         } catch (err) {
             console.error("Error fetching hydration:", err);
+            showToast("❌ Error fetching hydration");
         }
     };
 
@@ -94,67 +130,64 @@ const NutritionHydration: React.FC = () => {
     // --- Handlers ---
     const addWater = async () => {
         try {
-            await axios.post("http://localhost:8080/hydration/add");
-            setWaterCups((prev) => Math.min(prev + 1, totalWaterCups));
-            fetchHydration(); // sinkronizo me backend
+            await axios.post("http://localhost:5000/hydration/add");
+            await fetchHydration();
             showToast("💧 Great! You drank a cup of water.");
         } catch (err) {
             console.error("Error adding water:", err);
+            showToast("❌ Failed to add water");
         }
     };
 
     const addOrSaveMeal = async () => {
-        if (
-            mealName &&
-            mealCalories > 0 &&
-            mealCarbs >= 0 &&
-            mealProtein >= 0 &&
-            mealFat >= 0 &&
-            mealTime &&
-            mealType
-        ) {
-            const icons: Record<string, { icon: string; color: string }> = {
-                Breakfast: { icon: "☕", color: "bg-orange-500" },
-                Lunch: { icon: "🥗", color: "bg-green-500" },
-                Snack: { icon: "🍎", color: "bg-lime-500" },
-                Dinner: { icon: "🍽️", color: "bg-purple-500" },
-            };
+        // ✅ validim miqësor
+        if (!mealName) return showToast("⚠️ Please enter meal name");
+        if (mealCalories <= 0) return showToast("⚠️ Please enter calories");
+        if (!mealTime) return showToast("⚠️ Please select meal time");
 
-            const { icon, color } = icons[mealType] || {
-                icon: "🍴",
-                color: "bg-gray-400",
-            };
+        const icons: Record<string, { icon: string; color: string }> = {
+            Breakfast: { icon: "☕", color: "bg-orange-500" },
+            Lunch: { icon: "🥗", color: "bg-green-500" },
+            Snack: { icon: "🍎", color: "bg-lime-500" },
+            Dinner: { icon: "🍽️", color: "bg-purple-500" },
+        };
 
-            const newMeal: Meal = {
-                name: mealName,
-                calories: mealCalories,
-                carbs: mealCarbs,
-                protein: mealProtein,
-                fat: mealFat,
-                time: mealTime,
-                mealType,
-                icon,
-                color,
-                date: new Date().toISOString().split("T")[0],
-            };
+        const { icon, color } = icons[mealType] || {
+            icon: "🍴",
+            color: "bg-gray-400",
+        };
 
-            try {
-                await axios.post("http://localhost:8080/nutrition/add", newMeal);
-                fetchMeals();
-                showToast("🍴 Meal saved successfully!");
-            } catch (err) {
-                console.error("Error saving meal:", err);
-            }
+        const newMeal: Meal = {
+            name: mealName,
+            calories: mealCalories,
+            carbs: mealCarbs,
+            protein: mealProtein,
+            fat: mealFat,
+            time: mealTime,
+            mealType,
+            icon,
+            color,
+            date: new Date().toISOString().split("T")[0],
+        };
 
-            setMealName("");
-            setMealCalories(0);
-            setMealCarbs(0);
-            setMealProtein(0);
-            setMealFat(0);
-            setMealTime("");
-            setMealType("Breakfast");
-            setEditingIndex(null);
+        try {
+            await axios.post("http://localhost:5000/nutrition/add", newMeal);
+            await fetchMeals();
+            showToast("🍴 Meal saved successfully!");
+        } catch (err) {
+            console.error("Error saving meal:", err);
+            showToast("❌ Failed to save meal");
         }
+
+        // reset
+        setMealName("");
+        setMealCalories(0);
+        setMealCarbs(0);
+        setMealProtein(0);
+        setMealFat(0);
+        setMealTime("");
+        setMealType("Breakfast");
+        setEditingIndex(null);
     };
 
     const handleEditMeal = (index: number) => {
@@ -186,8 +219,9 @@ const NutritionHydration: React.FC = () => {
     last7days.setDate(last7days.getDate() - 6);
 
     const filteredMeals = meals.filter((m) => {
-        if (viewMode === "daily") return m.date === today;
-        return new Date(m.date) >= last7days;
+        const mealDate = new Date(m.date).toISOString().split("T")[0];
+        if (viewMode === "daily") return mealDate === today;
+        return new Date(mealDate) >= last7days;
     });
 
     const totalCalories = filteredMeals.reduce((a, m) => a + m.calories, 0);
@@ -196,15 +230,9 @@ const NutritionHydration: React.FC = () => {
     const totalFat = filteredMeals.reduce((a, m) => a + m.fat, 0);
 
     const totalMacros = totalCarbs * 4 + totalProtein * 4 + totalFat * 9;
-    const carbsPercent = totalMacros
-        ? Math.round((totalCarbs * 4 / totalMacros) * 100)
-        : 0;
-    const proteinPercent = totalMacros
-        ? Math.round((totalProtein * 4 / totalMacros) * 100)
-        : 0;
-    const fatPercent = totalMacros
-        ? Math.round((totalFat * 9 / totalMacros) * 100)
-        : 0;
+    const carbsPercent = totalMacros ? Math.round((totalCarbs * 4 / totalMacros) * 100) : 0;
+    const proteinPercent = totalMacros ? Math.round((totalProtein * 4 / totalMacros) * 100) : 0;
+    const fatPercent = totalMacros ? Math.round((totalFat * 9 / totalMacros) * 100) : 0;
 
     const caloriesGoal = 2000;
     const caloriesPercentage = Math.min((totalCalories / caloriesGoal) * 100, 100);
@@ -225,13 +253,27 @@ const NutritionHydration: React.FC = () => {
         return result;
     };
 
+    const getWeekHydration = () => {
+        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const result: { day: string; cups: number }[] = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dStr = d.toISOString().split("T")[0];
+            const entry = hydrationWeek.find((h) => h.date === dStr);
+            result.push({ day: days[d.getDay()], cups: entry ? entry.waterCups : 0 });
+        }
+        return result;
+    };
+
+    // --- UI ---
     return (
         <div className="flex flex-col md:flex-row w-full min-h-screen bg-gray-50 text-gray-800 font-sans p-4 md:p-8">
             <Navbar />
 
             <main className="flex-1 p-6 overflow-y-auto">
                 <div className="max-w-4xl mx-auto">
-                    {/* ✅ Toasts (për mesazhin e ujit) */}
+                    {/* ✅ Toasts */}
                     <div className="fixed top-6 right-6 space-y-4 z-50">
                         {toasts.map((t) => {
                             const isImportant = t.message.includes("💧 Time to drink water!");
@@ -252,7 +294,7 @@ const NutritionHydration: React.FC = () => {
                         })}
                     </div>
 
-                    {/* ✅ Motivational Card */}
+                    {/* Motivation */}
                     <section className="bg-gradient-to-r from-green-400 to-blue-500 rounded-xl shadow p-6 mb-6 text-white">
                         <h2 className="text-xl font-bold mb-2">💡 Daily Motivation</h2>
                         <p className="text-sm md:text-base">
@@ -261,41 +303,31 @@ const NutritionHydration: React.FC = () => {
                         </p>
                     </section>
 
-                    {/* ✅ Toggle Daily/Weekly */}
+                    {/* Toggle Daily/Weekly */}
                     <div className="flex gap-2 mb-6">
                         <button
                             onClick={() => setViewMode("daily")}
-                            className={`px-4 py-2 rounded ${viewMode === "daily"
-                                ? "bg-green-500 text-white"
-                                : "bg-gray-200 text-gray-700"
-                                }`}
+                            className={`px-4 py-2 rounded ${viewMode === "daily" ? "bg-green-500 text-white" : "bg-gray-200 text-gray-700"}`}
                         >
                             Daily
                         </button>
                         <button
                             onClick={() => setViewMode("weekly")}
-                            className={`px-4 py-2 rounded ${viewMode === "weekly"
-                                ? "bg-green-500 text-white"
-                                : "bg-gray-200 text-gray-700"
-                                }`}
+                            className={`px-4 py-2 rounded ${viewMode === "weekly" ? "bg-green-500 text-white" : "bg-gray-200 text-gray-700"}`}
                         >
                             Weekly
                         </button>
                     </div>
 
-                    {/* ✅ Calories & Water */}
+                    {/* Calories & Water */}
                     <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div className="bg-white rounded-xl shadow p-4">
                             <p className="text-orange-500 font-medium">🔥 Calories</p>
                             <p className="text-3xl font-bold">
-                                {totalCalories}{" "}
-                                <span className="text-gray-400 text-xl">/ {caloriesGoal}</span>
+                                {totalCalories} <span className="text-gray-400 text-xl">/ {caloriesGoal}</span>
                             </p>
                             <div className="h-2 bg-gray-200 rounded mt-2">
-                                <div
-                                    className="h-2 bg-orange-400 rounded"
-                                    style={{ width: `${caloriesPercentage}%` }}
-                                />
+                                <div className="h-2 bg-orange-400 rounded" style={{ width: `${caloriesPercentage}%` }} />
                             </div>
                         </div>
 
@@ -305,14 +337,11 @@ const NutritionHydration: React.FC = () => {
                                 <div
                                     className="absolute w-full h-full rounded-full"
                                     style={{
-                                        background: `conic-gradient(#3b82f6 ${waterPercentage * 3.6
-                                            }deg, #e5e7eb 0deg)`,
+                                        background: `conic-gradient(#3b82f6 ${waterPercentage * 3.6}deg, #e5e7eb 0deg)`,
                                     }}
                                 />
                                 <div className="absolute w-24 h-24 bg-white rounded-full flex flex-col items-center justify-center">
-                                    <span className="text-lg font-bold text-gray-800">
-                                        {waterPercentage}%
-                                    </span>
+                                    <span className="text-lg font-bold text-gray-800">{waterPercentage}%</span>
                                     <span className="text-xs text-gray-500">completed</span>
                                 </div>
                             </div>
@@ -325,35 +354,29 @@ const NutritionHydration: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* ✅ Macronutrients */}
+                    {/* Macronutrients */}
                     <section className="bg-white rounded-xl shadow p-6 mb-6">
                         <p className="font-medium text-gray-700 mb-4">Macronutrients</p>
                         <div className="flex justify-around text-center">
                             <div>
-                                <div className="text-green-600 font-bold text-xl">
-                                    {carbsPercent}%
-                                </div>
+                                <div className="text-green-600 font-bold text-xl">{carbsPercent}%</div>
                                 <p className="text-sm text-gray-500">Carbs</p>
                                 <p className="font-semibold">{totalCarbs}g</p>
                             </div>
                             <div>
-                                <div className="text-red-500 font-bold text-xl">
-                                    {proteinPercent}%
-                                </div>
+                                <div className="text-red-500 font-bold text-xl">{proteinPercent}%</div>
                                 <p className="text-sm text-gray-500">Protein</p>
                                 <p className="font-semibold">{totalProtein}g</p>
                             </div>
                             <div>
-                                <div className="text-yellow-500 font-bold text-xl">
-                                    {fatPercent}%
-                                </div>
+                                <div className="text-yellow-500 font-bold text-xl">{fatPercent}%</div>
                                 <p className="text-sm text-gray-500">Fat</p>
                                 <p className="font-semibold">{totalFat}g</p>
                             </div>
                         </div>
                     </section>
 
-                    {/* ✅ Add Meal Form */}
+                    {/* Meals Add & List */}
                     <section className="bg-white rounded-xl shadow p-6 mb-6">
                         <p className="font-medium text-gray-700 mb-4">🍴 Add Meal</p>
                         <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-4">
@@ -459,7 +482,7 @@ const NutritionHydration: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* ✅ Search Food */}
+                    {/* Search */}
                     <section className="bg-white rounded-xl shadow p-6 mb-6">
                         <p className="font-medium text-gray-700 mb-4">🔍 Search Food</p>
                         <input
@@ -470,9 +493,7 @@ const NutritionHydration: React.FC = () => {
                         />
                         <div className="space-y-3">
                             {meals
-                                .filter((meal) =>
-                                    meal.name.toLowerCase().includes(searchQuery)
-                                )
+                                .filter((meal) => meal.name.toLowerCase().includes(searchQuery))
                                 .map((meal) => (
                                     <div
                                         key={meal.id || meal.name + meal.time}
@@ -494,10 +515,9 @@ const NutritionHydration: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* ✅ Charts */}
+                    {/* Charts */}
                     <section className="bg-white rounded-xl shadow p-6 mb-6">
                         <h2 className="text-xl font-semibold mb-4">📊 Your Progress</h2>
-
                         {/* Pie Chart Macros */}
                         <div className="flex flex-col items-center mb-6">
                             <div
@@ -527,7 +547,7 @@ const NutritionHydration: React.FC = () => {
                         </div>
 
                         {/* Weekly Calories */}
-                        <div>
+                        <div className="mb-6">
                             <h3 className="font-medium mb-3">Weekly Calories</h3>
                             {getWeekCalories().map((d, idx) => (
                                 <div key={idx} className="mb-2">
@@ -538,7 +558,30 @@ const NutritionHydration: React.FC = () => {
                                     <div className="h-2 bg-gray-200 rounded">
                                         <div
                                             className="h-2 bg-orange-500 rounded"
-                                            style={{ width: `${Math.min((d.cal / 2000) * 100, 100)}%` }}
+                                            style={{
+                                                width: `${Math.min((d.cal / 2000) * 100, 100)}%`,
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Weekly Hydration */}
+                        <div>
+                            <h3 className="font-medium mb-3">Weekly Hydration</h3>
+                            {getWeekHydration().map((d, idx) => (
+                                <div key={idx} className="mb-2">
+                                    <div className="flex justify-between text-xs mb-1">
+                                        <span>{d.day}</span>
+                                        <span>{d.cups} cups</span>
+                                    </div>
+                                    <div className="h-2 bg-gray-200 rounded">
+                                        <div
+                                            className="h-2 bg-blue-500 rounded"
+                                            style={{
+                                                width: `${Math.min((d.cups / totalWaterCups) * 100, 100)}%`,
+                                            }}
                                         />
                                     </div>
                                 </div>
@@ -546,30 +589,21 @@ const NutritionHydration: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* ✅ Badges */}
+                    {/* Badges */}
                     <section className="w-full max-w-3xl mt-6">
                         <h2 className="text-xl font-semibold mb-4">🏅 Achievements</h2>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <div
-                                className={`p-4 rounded-xl shadow text-center ${waterCups >= 8 ? "bg-blue-100" : "bg-gray-100"
-                                    }`}
-                            >
+                            <div className={`p-4 rounded-xl shadow text-center ${waterCups >= 8 ? "bg-blue-100" : "bg-gray-100"}`}>
                                 <p className="text-3xl">💧</p>
                                 <p className="font-medium">Hydration Master</p>
                                 <p className="text-xs text-gray-500">8 cups in a day</p>
                             </div>
-                            <div
-                                className={`p-4 rounded-xl shadow text-center ${totalCalories >= 2000 ? "bg-orange-100" : "bg-gray-100"
-                                    }`}
-                            >
+                            <div className={`p-4 rounded-xl shadow text-center ${totalCalories >= 2000 ? "bg-orange-100" : "bg-gray-100"}`}>
                                 <p className="text-3xl">🔥</p>
                                 <p className="font-medium">Calorie Crusher</p>
                                 <p className="text-xs text-gray-500">2000 cal goal</p>
                             </div>
-                            <div
-                                className={`p-4 rounded-xl shadow text-center ${filteredMeals.length > 0 ? "bg-green-100" : "bg-gray-100"
-                                    }`}
-                            >
+                            <div className={`p-4 rounded-xl shadow text-center ${filteredMeals.length > 0 ? "bg-green-100" : "bg-gray-100"}`}>
                                 <p className="text-3xl">📅</p>
                                 <p className="font-medium">Daily Logger</p>
                                 <p className="text-xs text-gray-500">Log meals today</p>
@@ -577,16 +611,14 @@ const NutritionHydration: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* ✅ Export / Import */}
+                    {/* Export / Import */}
                     <section className="w-full max-w-3xl mt-6 bg-white rounded-xl shadow p-6">
                         <h2 className="text-xl font-semibold mb-4">📂 Data Export / Import</h2>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <button
                                 onClick={() => {
                                     const data = { meals, waterCups };
-                                    const blob = new Blob([JSON.stringify(data)], {
-                                        type: "application/json",
-                                    });
+                                    const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
                                     const url = URL.createObjectURL(blob);
                                     const a = document.createElement("a");
                                     a.href = url;

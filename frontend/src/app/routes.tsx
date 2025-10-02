@@ -11,6 +11,8 @@ import Leaderboard from "@/features/dashboard/pages/Leaderboard";
 import Login from "@/components/Login";
 import Signup from "@/components/Signup";
 import WorkoutTracking from "@/features/dashboard/pages/WorkoutTracking";
+import FabrikaMakina from "@/features/dashboard/pages/FabrikaMakina";
+
 
 export const routes: RouteObject[] = [
   {
@@ -41,6 +43,7 @@ export const routes: RouteObject[] = [
     path: "/recovery",
     element: <RecoveryWellness />,
   },
+  { path: "/fabrika-makina", element: <FabrikaMakina /> },
   {
     path: "/Profile",
     element: <Profile />,
@@ -52,47 +55,47 @@ export const routes: RouteObject[] = [
   },
   {
     path: "/Login",
-    element: <Login/>,
+    element: <Login />,
   },
   {
     path: "/Signup",
-    element: <Signup/>,
+    element: <Signup />,
   },
-    {
-        path: "/",
-        element: <Home />,
-    },
-    {
-        path: "/ai",
-        element: <AI />,
-    },
-    {
-        path: "/nutrition",
-        element: <NutritionHydration />,
-    },
-    {
-        path: "/social",
-        element: <Social />,
-    },
-    {
-        path: "/extra",
-        element: <PremiumSubscription />,
-    },
-    {
-        path: "/recovery",
-        element: <RecoveryWellness />,
-    },
-    // Catch-all redirect to homepage
-    {
-        path: "*",
-        element: <Navigate to="/" replace />,
-    },
-    {
-        path: "/Profile",
-        element: <Profile />,
-    },
-    {
-        path : "WorkoutTracking",
-        element:< WorkoutTracking/>,
-    },
+  {
+    path: "/",
+    element: <Home />,
+  },
+  {
+    path: "/ai",
+    element: <AI />,
+  },
+  {
+    path: "/nutrition",
+    element: <NutritionHydration />,
+  },
+  {
+    path: "/social",
+    element: <Social />,
+  },
+  {
+    path: "/extra",
+    element: <PremiumSubscription />,
+  },
+  {
+    path: "/recovery",
+    element: <RecoveryWellness />,
+  },
+  // Catch-all redirect to homepage
+  {
+    path: "*",
+    element: <Navigate to="/" replace />,
+  },
+  {
+    path: "/Profile",
+    element: <Profile />,
+  },
+  {
+    path: "WorkoutTracking",
+    element: < WorkoutTracking />,
+  },
 ];

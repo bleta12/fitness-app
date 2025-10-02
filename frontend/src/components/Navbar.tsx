@@ -12,6 +12,7 @@ import {
     MessageCircle,
     MoreHorizontal,
     HeartPlus,
+    Umbrella,
 } from "lucide-react";
 
 export interface NavLink {
@@ -30,7 +31,10 @@ const navLinks: NavLink[] = [
     { name: "Social", icon: MessageCircle, id: "Social", path: "/social" },
     { name: "Profile", icon: User, id: "Profile", path: "/profile" },
     { name: "Extra", icon: Zap, id: "Extra", path: "/extra" },
-    { name: "Recovery", icon: HeartPlus, id: "Recovery", path: "/recovery" }
+    { name: "Recovery", icon: HeartPlus, id: "Recovery", path: "/recovery" },
+    { name: "Fabrika Makina", icon: Umbrella, id: "FabrikaMakina", path: "/fabrika-makina" },
+
+
 ];
 
 const Navbar: React.FC = () => {
@@ -45,7 +49,7 @@ const Navbar: React.FC = () => {
     // Desktop Navigation
     const DesktopNav = () => (
         <div className="hidden md:flex flex-col w-64 bg-green-50 rounded-2xl shadow-lg p-6 mr-8">
-            
+
             {/* Logo */}
             <div className="flex items-center mb-10">
                 <Zap className="h-8 w-8 text-blue-500 mr-2" />

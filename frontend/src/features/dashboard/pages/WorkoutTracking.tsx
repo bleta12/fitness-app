@@ -26,7 +26,7 @@ const ProgressPage = ({ workouts }: { workouts: Workout[] }) => {
             setSelectedExercise(uniqueExercises[0]);
         }
     }, [uniqueExercises]);
-    
+
     const chartData = workouts
         .filter(w => w.exercises.some(e => e.name.toLowerCase() === selectedExercise))
         .map(w => {
@@ -173,38 +173,38 @@ const WorkoutTracking = () => {
         console.log("Saving workouts to localStorage:", workouts);
         try {
             if (workouts.length > 0) {
-                 localStorage.setItem('workouts', JSON.stringify(workouts));
+                localStorage.setItem('workouts', JSON.stringify(workouts));
             }
         } catch (e) {
             console.error("Failed to save workouts to localStorage:", e);
         }
     }, [workouts]);
 
-const fetchAiSuggestions = async () => {
-    setAiLoading(true);
-    setAiError('');
-    setAiSuggestions(null);
+    const fetchAiSuggestions = async () => {
+        setAiLoading(true);
+        setAiError('');
+        setAiSuggestions(null);
 
-    try {
-     
+        try {
 
-        // MOCKED data  just for testing
-        const mockedSuggestions = ['Squats', 'Pushups', 'Deadlifts', 'Overhead Press', 'Pull-ups'];  // to be replaced with :const response = await fetch('/api/ai-suggestions');
-//const data = await response.json();
-//setAiSuggestions(data.suggestions);
 
-        
-        
-        await new Promise(res => setTimeout(res, 500));
+            // MOCKED data  just for testing
+            const mockedSuggestions = ['Squats', 'Pushups', 'Deadlifts', 'Overhead Press', 'Pull-ups'];  // to be replaced with :const response = await fetch('/api/ai-suggestions');
+            //const data = await response.json();
+            //setAiSuggestions(data.suggestions);
 
-        setAiSuggestions(mockedSuggestions);
-    } catch (error: any) {
-        console.error("Error fetching AI suggestions:", error);
-        setAiError('Failed to fetch AI suggestions.');
-    } finally {
-        setAiLoading(false);
-    }
-};
+
+
+            await new Promise(res => setTimeout(res, 500));
+
+            setAiSuggestions(mockedSuggestions);
+        } catch (error: any) {
+            console.error("Error fetching AI suggestions:", error);
+            setAiError('Failed to fetch AI suggestions.');
+        } finally {
+            setAiLoading(false);
+        }
+    };
 
     const handleSaveWorkout = () => {
         if (!newWorkoutDate || newExercises.length === 0) {
@@ -220,9 +220,9 @@ const fetchAiSuggestions = async () => {
             };
             const updatedWorkouts = [...workouts, newWorkout];
             updatedWorkouts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-            
+
             setWorkouts(updatedWorkouts);
-            
+
             setNewWorkoutDate(today);
             setNewExercises([]);
             setCurrentPage('dashboard');
@@ -232,26 +232,26 @@ const fetchAiSuggestions = async () => {
             console.error("Error saving workout to local storage: ", e);
         }
     };
-const handleAddExercise = () => {
-  if (
-    currentExercise.name &&
-    currentExercise.sets > 0 &&
-    currentExercise.reps > 0 &&
-    currentExercise.weight >= 0 &&   
-    (currentExercise.duration ?? 0) >= 0       
-  ) {
-    const newId = crypto.randomUUID();
-    const exerciseToAdd = {
-      ...currentExercise,
-      id: newId,
-      name: currentExercise.name.toLowerCase(),
-      duration: currentExercise.duration ?? 0
+    const handleAddExercise = () => {
+        if (
+            currentExercise.name &&
+            currentExercise.sets > 0 &&
+            currentExercise.reps > 0 &&
+            currentExercise.weight >= 0 &&
+            (currentExercise.duration ?? 0) >= 0
+        ) {
+            const newId = crypto.randomUUID();
+            const exerciseToAdd = {
+                ...currentExercise,
+                id: newId,
+                name: currentExercise.name.toLowerCase(),
+                duration: currentExercise.duration ?? 0
+            };
+            setNewExercises([...newExercises, exerciseToAdd]);
+            setCurrentExercise({ id: '', name: '', sets: 0, reps: 0, weight: 0, duration: 0 });
+            setIsAddingExercise(false);
+        }
     };
-    setNewExercises([...newExercises, exerciseToAdd]);
-    setCurrentExercise({ id: '', name: '', sets: 0, reps: 0, weight: 0, duration: 0 });
-    setIsAddingExercise(false);
-  }
-};
 
     const handleDeleteWorkout = (workoutId: string) => {
         try {
@@ -277,7 +277,7 @@ const handleAddExercise = () => {
                                 className="relative overflow-hidden group p-8 rounded-3xl shadow-lg cursor-pointer transform hover:scale-105 transition-transform duration-300 flex flex-col items-center justify-center text-center backdrop-blur-md bg-white bg-opacity-70 border border-gray-300"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-br from-purple-100 to-indigo-100 opacity-50 group-hover:opacity-70 transition-opacity duration-300 -z-10"></div>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus text-purple-600"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus text-purple-600"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
                                 <span className="mt-4 text-xl font-semibold text-gray-800">Add New Workout</span>
                             </div>
                             <div
@@ -285,7 +285,7 @@ const handleAddExercise = () => {
                                 className="relative overflow-hidden group p-8 rounded-3xl shadow-lg cursor-pointer transform hover:scale-105 transition-transform duration-300 flex flex-col items-center justify-center text-center backdrop-blur-md bg-white bg-opacity-70 border border-gray-300"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-cyan-100 opacity-50 group-hover:opacity-70 transition-opacity duration-300 -z-10"></div>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-list text-blue-600"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-list text-blue-600"><line x1="8" x2="21" y1="6" y2="6" /><line x1="8" x2="21" y1="12" y2="12" /><line x1="8" x2="21" y1="18" y2="18" /><line x1="3" x2="3.01" y1="6" y2="6" /><line x1="3" x2="3.01" y1="12" y2="12" /><line x1="3" x2="3.01" y1="18" y2="18" /></svg>
                                 <span className="mt-4 text-xl font-semibold text-gray-800">View History</span>
                             </div>
                             <div
@@ -293,7 +293,7 @@ const handleAddExercise = () => {
                                 className="relative overflow-hidden group p-8 rounded-3xl shadow-lg cursor-pointer transform hover:scale-105 transition-transform duration-300 flex flex-col items-center justify-center text-center backdrop-blur-md bg-white bg-opacity-70 border border-gray-300"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-100 to-green-100 opacity-50 group-hover:opacity-70 transition-opacity duration-300 -z-10"></div>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bar-chart-2 text-emerald-600"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bar-chart-2 text-emerald-600"><line x1="18" x2="18" y1="20" y2="10" /><line x1="12" x2="12" y1="20" y2="4" /><line x1="6" x2="6" y1="20" y2="14" /></svg>
                                 <span className="mt-4 text-xl font-semibold text-gray-800">Track Progress</span>
                             </div>
                         </div>
@@ -307,7 +307,7 @@ const handleAddExercise = () => {
                                 >
                                     <span className="absolute inset-0 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg opacity-80 group-hover:opacity-100 transition-opacity duration-300"></span>
                                     <span className="relative z-10 flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-sparkles inline-block mr-1"><path d="M9.91 1.05C8.97 2.95 6.43 4.88 4.29 6.24c-1.89 1.15-3 3.39-2.58 5.62a3.86 3.86 0 0 0 1.29 2.12c1.03.95 2.14 1.84 3.1 2.92l.85 1.03c.53.64 1.35 1.48 2.21 1.95a3.86 3.86 0 0 0 3.79-.11c.88-.6 1.74-1.28 2.45-2.07l.95-.97c.54-.56.97-1.18 1.44-1.84a3.86 3.86 0 0 0 .53-3.41c-1.39-2.43-3.95-4.46-6.42-5.74-1.8-1.28-3.34-3.11-4.22-5.06l-.42-.94Z"/><path d="M12 21.68c-.69-.9-1.26-2.14-1.76-3.49"/><path d="M11 11.23c-1.18 2.22-3.21 4.19-5.18 5.48"/><path d="M22 17.02c-1.18-2.22-3.21-4.19-5.18-5.48"/><path d="M16 1.07c.69.9 1.26 2.14 1.76 3.49"/></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-sparkles inline-block mr-1"><path d="M9.91 1.05C8.97 2.95 6.43 4.88 4.29 6.24c-1.89 1.15-3 3.39-2.58 5.62a3.86 3.86 0 0 0 1.29 2.12c1.03.95 2.14 1.84 3.1 2.92l.85 1.03c.53.64 1.35 1.48 2.21 1.95a3.86 3.86 0 0 0 3.79-.11c.88-.6 1.74-1.28 2.45-2.07l.95-.97c.54-.56.97-1.18 1.44-1.84a3.86 3.86 0 0 0 .53-3.41c-1.39-2.43-3.95-4.46-6.42-5.74-1.8-1.28-3.34-3.11-4.22-5.06l-.42-.94Z" /><path d="M12 21.68c-.69-.9-1.26-2.14-1.76-3.49" /><path d="M11 11.23c-1.18 2.22-3.21 4.19-5.18 5.48" /><path d="M22 17.02c-1.18-2.22-3.21-4.19-5.18-5.48" /><path d="M16 1.07c.69.9 1.26 2.14 1.76 3.49" /></svg>
                                         Get Tips
                                     </span>
                                 </button>
@@ -364,7 +364,7 @@ const handleAddExercise = () => {
                                                 onClick={() => setNewExercises(newExercises.filter(e => e.id !== exercise.id))}
                                                 className="p-2 text-red-600 hover:text-red-800 transition duration-200 rounded-full"
                                             >
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash-2"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
                                             </button>
                                         </div>
                                     ))}
@@ -372,95 +372,94 @@ const handleAddExercise = () => {
                             ) : (
                                 <p className="text-darkgray-500 italic mb-4">No exercises added yet.</p>
                             )}
-                            
-                            {isAddingExercise ? (
-  <div className="bg-gray-200/80 p-4 rounded-lg shadow-inner mb-4 border border-gray-300">
-    <h4 className="font-bold mb-2 text-gray-800">Add New Exercise</h4>
-    <div className="space-y-2">
-      <input
-        type="text"
-        placeholder="Exercise Name (e.g., Squats)"
-        value={currentExercise.name}
-        onChange={(e) => setCurrentExercise({ ...currentExercise, name: e.target.value })}
-        className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
-      />
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <input
-          type="number"
-          min={0}
-          placeholder="Sets"
-          value={currentExercise.sets || ''}
-          onChange={(e) =>
-            setCurrentExercise({ ...currentExercise, sets: Math.max(0, parseInt(e.target.value) || 0) })
-          }
-          className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
-        />
-        <input
-          type="number"
-          min={0}
-          placeholder="Reps"
-          value={currentExercise.reps || ''}
-          onChange={(e) =>
-            setCurrentExercise({ ...currentExercise, reps: Math.max(0, parseInt(e.target.value) || 0) })
-          }
-          className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
-        />
-        <input
-          type="number"
-          min={0}
-          placeholder="Weight (kg)"
-          value={currentExercise.weight || ''}
-          onChange={(e) =>
-            setCurrentExercise({ ...currentExercise, weight: Math.max(0, parseInt(e.target.value) || 0) })
-          }
-          className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
-        />
-        <input
-          type="number"
-          min={0}
-          placeholder="Duration (min)"
-          value={currentExercise.duration || ''}
-          onChange={(e) =>
-            setCurrentExercise({ ...currentExercise, duration: Math.max(0, parseInt(e.target.value) || 0) })
-          }
-          className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
-        />
-      </div>
-    </div>
-    <div className="flex space-x-2 mt-4">
-      <button
-        onClick={handleAddExercise}
-        className="relative overflow-hidden group flex-1 py-2 rounded-lg font-semibold text-white transform active:scale-95 transition-all duration-300 shadow-lg"
-      >
-        <span className="absolute inset-0 bg-[#008080]/80 rounded-lg opacity-80 group-hover:opacity-100 transition-opacity duration-300"></span>
-        <span className="relative z-10">Save Exercise</span>
-      </button>
-      <button
-        onClick={() => setIsAddingExercise(false)}
-        className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400 transition"
-      >
-        Cancel
-      </button>
-    </div>
-  </div>
-) : (
-  <button
-    onClick={() => setIsAddingExercise(true)}
-    className="w-full flex items-center justify-center bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400 transition border border-gray-400"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus mr-2"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add Exercise
-  </button>
-)}
 
-                            
+                            {isAddingExercise ? (
+                                <div className="bg-gray-200/80 p-4 rounded-lg shadow-inner mb-4 border border-gray-300">
+                                    <h4 className="font-bold mb-2 text-gray-800">Add New Exercise</h4>
+                                    <div className="space-y-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Exercise Name (e.g., Squats)"
+                                            value={currentExercise.name}
+                                            onChange={(e) => setCurrentExercise({ ...currentExercise, name: e.target.value })}
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
+                                        />
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                placeholder="Sets"
+                                                value={currentExercise.sets || ''}
+                                                onChange={(e) =>
+                                                    setCurrentExercise({ ...currentExercise, sets: Math.max(0, parseInt(e.target.value) || 0) })
+                                                }
+                                                className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
+                                            />
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                placeholder="Reps"
+                                                value={currentExercise.reps || ''}
+                                                onChange={(e) =>
+                                                    setCurrentExercise({ ...currentExercise, reps: Math.max(0, parseInt(e.target.value) || 0) })
+                                                }
+                                                className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
+                                            />
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                placeholder="Weight (kg)"
+                                                value={currentExercise.weight || ''}
+                                                onChange={(e) =>
+                                                    setCurrentExercise({ ...currentExercise, weight: Math.max(0, parseInt(e.target.value) || 0) })
+                                                }
+                                                className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
+                                            />
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                placeholder="Duration (min)"
+                                                value={currentExercise.duration || ''}
+                                                onChange={(e) =>
+                                                    setCurrentExercise({ ...currentExercise, duration: Math.max(0, parseInt(e.target.value) || 0) })
+                                                }
+                                                className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex space-x-2 mt-4">
+                                        <button
+                                            onClick={handleAddExercise}
+                                            className="relative overflow-hidden group flex-1 py-2 rounded-lg font-semibold text-white transform active:scale-95 transition-all duration-300 shadow-lg"
+                                        >
+                                            <span className="absolute inset-0 bg-[#008080]/80 rounded-lg opacity-80 group-hover:opacity-100 transition-opacity duration-300"></span>
+                                            <span className="relative z-10">Save Exercise</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setIsAddingExercise(false)}
+                                            className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400 transition"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setIsAddingExercise(true)}
+                                    className="w-full flex items-center justify-center bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400 transition border border-gray-400"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus mr-2"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Add Exercise
+                                </button>
+                            )}
+
+
                             <button
                                 onClick={handleSaveWorkout}
                                 disabled={!newWorkoutDate || newExercises.length === 0}
-                                className={`w-full mt-6 py-3 rounded-lg font-bold text-black transition ${
-                                    !newWorkoutDate || newExercises.length === 0
+                                className={`w-full mt-6 py-3 rounded-lg font-bold text-black transition ${!newWorkoutDate || newExercises.length === 0
                                         ? 'bg-gray-300 cursor-not-allowed text-gray-600'
                                         : 'bg-gray-700 hover:bg-gray-800 shadow-md transform active:scale-95'
-                                }`}
+                                    }`}
                             >
                                 Save Workout
                             </button>
@@ -479,7 +478,7 @@ const handleAddExercise = () => {
                                     <div key={workout.id} className="relative p-6 rounded-2xl shadow-xl backdrop-blur-sm
                                     bg-white/70 border border-gray-300 overflow-hidden transform
                                     transition-transform duration-300 hover:scale-[1.01] hover:shadow-2xl">
-                                        
+
                                         <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
                                         <div className="absolute top-1/4 right-1/4 w-32 h-32 bg-cyan-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
 
@@ -487,13 +486,13 @@ const handleAddExercise = () => {
                                             onClick={() => handleDeleteWorkout(workout.id)}
                                             className="absolute top-4 right-4 text-red-600 hover:text-red-800 transition duration-200 z-10"
                                         >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash-2"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
                                         </button>
-                                        
+
                                         <p className="relative z-10 text-2xl font-extrabold text-gray-800 mb-4 drop-shadow-sm tracking-wide">
                                             {new Date(workout.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                                         </p>
-                                        
+
                                         <div className="relative z-10 space-y-4">
                                             {workout.exercises.map((exercise, index) => (
                                                 <div key={index} className="relative p-4 rounded-xl shadow-md flex items-center bg-white border border-gray-200
